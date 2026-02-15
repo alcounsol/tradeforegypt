@@ -6,8 +6,21 @@ export default {
   ],
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['Cairo', 'sans-serif'],
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "#0ea5e9",
+          foreground: "#ffffff",
+        },
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
     },
   },
