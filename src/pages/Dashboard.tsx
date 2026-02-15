@@ -24,7 +24,7 @@ export default function Dashboard() {
     customersCount: 0,
     servicesCount: 0
   })
-  const [loading, setLoading] = useState(true)
+  // const [loading, setLoading] = useState(true)
   const [recentServices, setRecentServices] = useState<any[]>([])
 
   useEffect(() => {
@@ -81,7 +81,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error fetching stats:', error)
     } finally {
-      setLoading(false)
+      // setLoading(false)
     }
   }
 
