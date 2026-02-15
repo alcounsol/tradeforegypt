@@ -9,7 +9,8 @@ import {
   Wallet,
   UserCircle,
   Building,
-  FileText
+  FileText,
+  ChevronLeft
 } from 'lucide-react'
 
 const menuItems = [
@@ -29,33 +30,54 @@ export default function Sidebar() {
   const location = useLocation()
 
   return (
-    <aside className="w-64 bg-white shadow-lg min-h-screen" style={{ width: '256px', backgroundColor: 'white', minHeight: '100vh', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
-      <div className="p-4 border-b">
-        <h1 className="text-xl font-bold text-sky-600">Trade For Egypt</h1>
-        <p className="text-sm text-gray-500">نظام الحسابات اليومية</p>
+    <aside className="w-72 bg-slate-900 text-slate-300 min-h-screen sticky top-0 flex flex-col border-l border-slate-800 shadow-2xl">
+      <div className="p-8 border-b border-slate-800">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg shadow-sky-500/20">
+            <Building className="text-white h-6 w-6" />
+          </div>
+          <h1 className="text-xl font-bold text-white tracking-tight">Trade For Egypt</h1>
+        </div>
+        <p className="text-xs text-slate-500 font-medium uppercase tracking-widest">نظام الإدارة المتكامل</p>
       </div>
-      <nav className="p-4">
-        <ul className="space-y-2">
+      
+      <nav className="flex-1 p-4 overflow-y-auto custom-scrollbar">
+        <ul className="space-y-1.5">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.href
             return (
               <li key={item.href}>
                 <Link
                   to={item.href}
-                  className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group ${
                     isActive
-                      ? 'bg-sky-500 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25'
+                      : 'hover:bg-slate-800 hover:text-white'
                   }`}
                 >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <div className="flex items-center gap-3">
+                    <item.icon className={`h-5 w-5 transition-colors ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-sky-400'}`} />
+                    <span className="font-medium text-sm">{item.label}</span>
+                  </div>
+                  {isActive && <ChevronLeft className="h-4 w-4" />}
                 </Link>
               </li>
             )
           })}
         </ul>
       </nav>
+
+      <div className="p-6 border-t border-slate-800 bg-slate-900/50">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-white font-bold">
+            A
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-white">المدير العام</span>
+            <span className="text-xs text-slate-500">متصل الآن</span>
+          </div>
+        </div>
+      </div>
     </aside>
   )
 }
