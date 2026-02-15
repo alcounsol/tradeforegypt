@@ -92,9 +92,9 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="flex min-h-screen bg-gray-50" dir="rtl">
+    <div className="flex min-h-screen bg-gray-50" dir="rtl" style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-6" style={{ flex: 1, padding: '24px' }}>
         <div className="mb-6">
           <h1 className="text-2xl font-bold">لوحة تحكم Trade For Egypt</h1>
           <p className="text-gray-500">نظرة عامة على الأداء المالي لشهر {new Date().getMonth() + 1}/{new Date().getFullYear()}</p>

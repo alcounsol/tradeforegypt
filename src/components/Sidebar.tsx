@@ -29,7 +29,7 @@ export default function Sidebar() {
   const location = useLocation()
 
   return (
-    <aside className="w-64 bg-white shadow-lg min-h-screen">
+    <aside className="w-64 bg-white shadow-lg min-h-screen" style={{ width: '256px', backgroundColor: 'white', minHeight: '100vh', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
       <div className="p-4 border-b">
         <h1 className="text-xl font-bold text-sky-600">Trade For Egypt</h1>
         <p className="text-sm text-gray-500">نظام الحسابات اليومية</p>
