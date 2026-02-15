@@ -3,7 +3,7 @@ export function formatCurrency(amount: number): string {
     style: 'currency',
     currency: 'EGP',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   }).format(amount)
 }
 
@@ -11,7 +11,7 @@ export function formatDate(date: string): string {
   return new Date(date).toLocaleDateString('ar-EG', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   })
 }
 
