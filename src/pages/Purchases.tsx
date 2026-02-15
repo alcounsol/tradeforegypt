@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import type { InventoryItem, Supplier, Purchase } from '../lib/supabase'
 import { formatCurrency, formatDate } from '../lib/utils'
 import Sidebar from '../components/Sidebar'
-import { Plus, Search, Trash2 } from 'lucide-react'
+import { Plus, Search, Trash2, ShoppingCart } from 'lucide-react'
 
 export default function Purchases() {
   const [purchases, setPurchases] = useState<(Purchase & { item?: InventoryItem; supplier?: Supplier })[]>([])
@@ -80,56 +80,62 @@ export default function Purchases() {
   const filteredPurchases = purchases.filter(p => p.item?.name.includes(search) || p.supplier?.name.includes(search) || p.invoice_number?.includes(search))
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="page-layout font-['Cairo']" dir="rtl">
       <Sidebar />
-      <main className="flex-1 p-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">المشتريات</h1>
-            <p className="text-gray-500">تسجيل مشتريات قطع الغيار</p>
+      <div className="page-content">
+        <header className="top-header">
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5 text-sky-600" />
+            <h1 className="text-base font-extrabold text-slate-900">المشتريات</h1>
           </div>
-          <button onClick={() => { setShowForm(true); resetForm(); }} className="flex items-center gap-2 bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600">
+          <button onClick={() => { setShowForm(true); resetForm(); }} className="btn btn-primary">
             <Plus className="h-5 w-5" />
             تسجيل مشتريات
           </button>
-        </div>
+        </header>
 
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input type="text" placeholder="بحث..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pr-10 pl-4 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500" />
+        <main className="main-content">
+          <div className="mb-6">
+            <h1 className="page-title">المشتريات</h1>
+            <p className="page-subtitle">تسجيل مشتريات قطع الغيار</p>
           </div>
+
+        <div className="mb-5">
+          <div className="search-input-wrapper" style={{ maxWidth: '400px' }}>
+              <Search className="h-4 w-4" />
+              <input type="text" placeholder="بحث..." value={search} onChange={(e) => setSearch(e.target.value)} className="search-input" />
+            </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
+        <div className="card overflow-hidden">
+          <table className="data-table">
+            <thead >
               <tr>
-                <th className="px-4 py-3 text-right text-sm font-semibold">الصنف</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold">المورد</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold">الكمية</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold">سعر الوحدة</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold">الإجمالي</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold">التاريخ</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold">الإجراءات</th>
+                <th >الصنف</th>
+                <th >المورد</th>
+                <th >الكمية</th>
+                <th >سعر الوحدة</th>
+                <th >الإجمالي</th>
+                <th >التاريخ</th>
+                <th >الإجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody >
               {loading ? (
-                <tr><td colSpan={7} className="text-center py-8">جاري التحميل...</td></tr>
+                <tr><td colSpan={7} >جاري التحميل...</td></tr>
               ) : filteredPurchases.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-8 text-gray-500">لا توجد مشتريات</td></tr>
+                <tr><td colSpan={7} >لا توجد مشتريات</td></tr>
               ) : (
                 filteredPurchases.map(pur => (
-                  <tr key={pur.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">{pur.item?.name || '-'}</td>
-                    <td className="px-4 py-3 text-gray-500">{pur.supplier?.name || '-'}</td>
-                    <td className="px-4 py-3">{pur.quantity}</td>
-                    <td className="px-4 py-3">{formatCurrency(pur.unit_cost)}</td>
-                    <td className="px-4 py-3 font-bold text-sky-600">{formatCurrency(pur.total_cost)}</td>
-                    <td className="px-4 py-3">{formatDate(pur.purchase_date)}</td>
-                    <td className="px-4 py-3">
-                      <button onClick={() => handleDelete(pur.id)} className="text-red-500 hover:text-red-700"><Trash2 className="h-4 w-4" /></button>
+                  <tr key={pur.id} >
+                    <td className="font-bold text-slate-900">{pur.item?.name || '-'}</td>
+                    <td className="text-slate-500">{pur.supplier?.name || '-'}</td>
+                    <td >{pur.quantity}</td>
+                    <td >{formatCurrency(pur.unit_cost)}</td>
+                    <td className="font-extrabold text-sky-600">{formatCurrency(pur.total_cost)}</td>
+                    <td >{formatDate(pur.purchase_date)}</td>
+                    <td >
+                      <button onClick={() => handleDelete(pur.id)} className="icon-btn delete"><Trash2 className="h-4 w-4" /></button>
                     </td>
                   </tr>
                 ))
@@ -139,32 +145,32 @@ export default function Purchases() {
         </div>
 
         {showForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-              <h2 className="text-xl font-bold mb-4">تسجيل مشتريات جديدة</h2>
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h2 className="text-lg font-extrabold mb-5">تسجيل مشتريات جديدة</h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">الصنف *</label>
-                  <select required value={formData.item_id} onChange={(e) => setFormData({...formData, item_id: parseInt(e.target.value)})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500">
+                  <label className="form-label">الصنف *</label>
+                  <select required value={formData.item_id} onChange={(e) => setFormData({...formData, item_id: parseInt(e.target.value)})} className="form-input">
                     <option value={0}>اختر الصنف</option>
                     {items.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">المورد</label>
-                  <select value={formData.supplier_id} onChange={(e) => setFormData({...formData, supplier_id: parseInt(e.target.value)})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500">
+                  <label className="form-label">المورد</label>
+                  <select value={formData.supplier_id} onChange={(e) => setFormData({...formData, supplier_id: parseInt(e.target.value)})} className="form-input">
                     <option value={0}>اختر المورد</option>
                     {suppliers.map(sup => <option key={sup.id} value={sup.id}>{sup.name}</option>)}
                   </select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">الكمية *</label>
-                    <input type="number" required min={1} value={formData.quantity} onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 1})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500" />
+                    <label className="form-label">الكمية *</label>
+                    <input type="number" required min={1} value={formData.quantity} onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 1})} className="form-input" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">سعر الوحدة *</label>
-                    <input type="number" required step="0.01" value={formData.unit_cost} onChange={(e) => setFormData({...formData, unit_cost: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500" />
+                    <label className="form-label">سعر الوحدة *</label>
+                    <input type="number" required step="0.01" value={formData.unit_cost} onChange={(e) => setFormData({...formData, unit_cost: parseFloat(e.target.value) || 0})} className="form-input" />
                   </div>
                 </div>
                 <div className="p-3 bg-sky-50 rounded">
@@ -173,23 +179,24 @@ export default function Purchases() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">رقم الفاتورة</label>
-                    <input type="text" value={formData.invoice_number} onChange={(e) => setFormData({...formData, invoice_number: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500" />
+                    <label className="form-label">رقم الفاتورة</label>
+                    <input type="text" value={formData.invoice_number} onChange={(e) => setFormData({...formData, invoice_number: e.target.value})} className="form-input" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">التاريخ</label>
-                    <input type="date" value={formData.purchase_date} onChange={(e) => setFormData({...formData, purchase_date: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500" />
+                    <label className="form-label">التاريخ</label>
+                    <input type="date" value={formData.purchase_date} onChange={(e) => setFormData({...formData, purchase_date: e.target.value})} className="form-input" />
                   </div>
                 </div>
-                <div className="flex gap-3 pt-4">
-                  <button type="submit" className="flex-1 bg-sky-500 text-white py-2 rounded-lg hover:bg-sky-600">تسجيل</button>
-                  <button type="button" onClick={() => setShowForm(false)} className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300">إلغاء</button>
+                <div className="flex gap-3 pt-3">
+                  <button type="submit" className="btn btn-primary flex-1">تسجيل</button>
+                  <button type="button" onClick={() => setShowForm(false)} className="btn btn-secondary flex-1">إلغاء</button>
                 </div>
               </form>
             </div>
           </div>
         )}
       </main>
+      </div>
     </div>
   )
 }

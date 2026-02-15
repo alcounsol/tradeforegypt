@@ -2,19 +2,19 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { formatCurrency } from '../lib/utils'
 import Sidebar from '../components/Sidebar'
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
   AlertTriangle,
   Package,
   Users,
   Wrench,
   ArrowUpRight,
   ArrowDownRight,
-  // Calendar,
   Bell,
-  Search
+  Search,
+  Download
 } from 'lucide-react'
 
 export default function Dashboard() {
@@ -24,7 +24,8 @@ export default function Dashboard() {
     netProfit: 0,
     lowStockCount: 0,
     customersCount: 0,
-    servicesCount: 0
+    servicesCount: 0,
+    inventoryCount: 0
   })
   const [recentServices, setRecentServices] = useState<any[]>([])
 
@@ -69,13 +70,18 @@ export default function Dashboard() {
         .from('customers')
         .select('id', { count: 'exact', head: true })
 
+      const { count: inventoryCount } = await supabase
+        .from('inventory_items')
+        .select('id', { count: 'exact', head: true })
+
       setStats({
         totalRevenue,
         totalExpenses,
         netProfit: totalRevenue - totalExpenses,
         lowStockCount: lowStock?.length || 0,
         customersCount: customersCount || 0,
-        servicesCount: allServices?.length || 0
+        servicesCount: allServices?.length || 0,
+        inventoryCount: inventoryCount || 0
       })
 
       setRecentServices(services || [])
@@ -85,119 +91,155 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f8fafc] font-['Cairo'] text-slate-900" dir="rtl">
+    <div className="page-layout font-['Cairo']" dir="rtl">
       <Sidebar />
-      
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Top Navbar */}
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-10">
-          <div className="flex items-center gap-4 bg-slate-100 px-4 py-2 rounded-2xl w-96">
+
+      <div className="page-content">
+        {/* Top Header */}
+        <header className="top-header">
+          <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl w-80 border border-slate-200/60">
             <Search className="h-4 w-4 text-slate-400" />
-            <input type="text" placeholder="ابحث عن أي شيء..." className="bg-transparent border-none outline-none text-sm w-full" />
+            <input
+              type="text"
+              placeholder="ابحث عن أي شيء..."
+              className="bg-transparent border-none outline-none text-sm w-full font-medium"
+            />
           </div>
-          <div className="flex items-center gap-6">
-            <div className="relative p-2 bg-slate-100 rounded-xl cursor-pointer hover:bg-slate-200 transition-colors">
-              <Bell className="h-5 w-5 text-slate-600" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
-            </div>
-            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-sky-400 to-sky-600 shadow-lg shadow-sky-200 flex items-center justify-center text-white font-bold">
+          <div className="flex items-center gap-4">
+            <button className="relative p-2.5 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200/60">
+              <Bell className="h-[18px] w-[18px] text-slate-500" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
+            </button>
+            <div
+              className="h-9 w-9 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md"
+              style={{ background: 'linear-gradient(135deg, #0ea5e9, #0284c7)' }}
+            >
               A
             </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-8 lg:p-10">
+        {/* Main Content */}
+        <main className="main-content">
           {/* Welcome Section */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-black text-slate-900">أهلاً بك، أدمن 👋</h1>
-              <p className="text-slate-500 mt-2 font-medium">إليك ملخص أداء شركة Trade For Egypt اليوم.</p>
+              <h1 className="text-2xl font-extrabold text-slate-900">
+                أهلاً بك، أدمن 👋
+              </h1>
+              <p className="text-slate-500 mt-1 text-sm font-medium">
+                إليك ملخص أداء شركة Trade For Egypt اليوم.
+              </p>
             </div>
-            <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200">
-              <button className="px-6 py-2.5 rounded-xl text-sm font-bold bg-slate-900 text-white shadow-lg shadow-slate-200 transition-all">اليوم</button>
-              <button className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all">هذا الأسبوع</button>
-              <button className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all">هذا الشهر</button>
+            <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200">
+              <button className="px-5 py-2 rounded-lg text-sm font-bold bg-slate-900 text-white shadow-sm transition-all">
+                اليوم
+              </button>
+              <button className="px-5 py-2 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all">
+                هذا الأسبوع
+              </button>
+              <button className="px-5 py-2 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all">
+                هذا الشهر
+              </button>
             </div>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-            <StatCard 
-              title="إجمالي الإيرادات" 
-              value={formatCurrency(stats.totalRevenue)} 
-              icon={TrendingUp} 
-              color="text-sky-600" 
-              bgColor="bg-sky-50"
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <StatCard
+              title="إجمالي الإيرادات"
+              value={formatCurrency(stats.totalRevenue)}
+              icon={TrendingUp}
+              iconBg="bg-sky-50"
+              iconColor="text-sky-600"
               trend="+12.5%"
               isUp={true}
+              accentClass="blue"
             />
-            <StatCard 
-              title="إجمالي المصروفات" 
-              value={formatCurrency(stats.totalExpenses)} 
-              icon={TrendingDown} 
-              color="text-rose-600" 
-              bgColor="bg-rose-50"
+            <StatCard
+              title="إجمالي المصروفات"
+              value={formatCurrency(stats.totalExpenses)}
+              icon={TrendingDown}
+              iconBg="bg-rose-50"
+              iconColor="text-rose-600"
               trend="+4.2%"
               isUp={false}
+              accentClass="red"
             />
-            <StatCard 
-              title="صافي الربح" 
-              value={formatCurrency(stats.netProfit)} 
-              icon={DollarSign} 
-              color="text-emerald-600" 
-              bgColor="bg-emerald-50"
+            <StatCard
+              title="صافي الربح"
+              value={formatCurrency(stats.netProfit)}
+              icon={DollarSign}
+              iconBg="bg-emerald-50"
+              iconColor="text-emerald-600"
               trend="+8.1%"
               isUp={true}
+              accentClass="green"
             />
-            <StatCard 
-              title="تنبيهات المخزون" 
-              value={stats.lowStockCount} 
-              icon={AlertTriangle} 
-              color="text-amber-600" 
-              bgColor="bg-amber-50"
+            <StatCard
+              title="تنبيهات المخزون"
+              value={stats.lowStockCount}
+              icon={AlertTriangle}
+              iconBg="bg-amber-50"
+              iconColor="text-amber-600"
               trend="أصناف منخفضة"
               isWarning={stats.lowStockCount > 0}
+              accentClass="amber"
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Recent Activity Table */}
-            <div className="lg:col-span-2 bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-              <div className="p-8 border-b border-slate-50 flex items-center justify-between">
-                <h2 className="text-xl font-black text-slate-900">آخر عمليات الصيانة</h2>
-                <button className="text-sky-600 font-bold text-sm px-4 py-2 rounded-xl hover:bg-sky-50 transition-all">عرض السجل الكامل</button>
+          {/* Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Recent Services Table */}
+            <div className="lg:col-span-2 card overflow-hidden">
+              <div className="card-header">
+                <h2 className="text-base font-extrabold text-slate-900">
+                  آخر عمليات الصيانة
+                </h2>
+                <button className="text-sky-600 font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-sky-50 transition-all">
+                  عرض السجل الكامل
+                </button>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-right">
+                <table className="data-table">
                   <thead>
-                    <tr className="bg-slate-50/50">
-                      <th className="px-8 py-5 text-slate-400 font-bold text-xs uppercase tracking-wider">العميل</th>
-                      <th className="px-8 py-5 text-slate-400 font-bold text-xs uppercase tracking-wider">الجهاز</th>
-                      <th className="px-8 py-5 text-slate-400 font-bold text-xs uppercase tracking-wider">المبلغ</th>
-                      <th className="px-8 py-5 text-slate-400 font-bold text-xs uppercase tracking-wider">الحالة</th>
+                    <tr>
+                      <th>العميل</th>
+                      <th>الجهاز</th>
+                      <th>المبلغ</th>
+                      <th>الحالة</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {recentServices.length > 0 ? recentServices.map((service) => (
-                      <tr key={service.id} className="hover:bg-slate-50/50 transition-colors group">
-                        <td className="px-8 py-6">
-                          <div className="font-bold text-slate-900">{service.customer_name}</div>
-                          <div className="text-xs text-slate-400 mt-0.5">منذ ساعتين</div>
-                        </td>
-                        <td className="px-8 py-6 text-slate-600 font-medium">{service.device_brand} {service.device_model}</td>
-                        <td className="px-8 py-6 font-black text-slate-900">{formatCurrency(service.amount)}</td>
-                        <td className="px-8 py-6">
-                          <span className="px-4 py-1.5 rounded-xl bg-emerald-100 text-emerald-700 text-xs font-black">مكتمل</span>
-                        </td>
-                      </tr>
-                    )) : (
-                      <tr>
-                        <td colSpan={4} className="px-8 py-20 text-center">
-                          <div className="flex flex-col items-center gap-3">
-                            <div className="p-4 bg-slate-50 rounded-full">
-                              <Wrench className="h-8 w-8 text-slate-300" />
+                  <tbody>
+                    {recentServices.length > 0 ? (
+                      recentServices.map((service) => (
+                        <tr key={service.id}>
+                          <td>
+                            <div className="font-bold text-slate-900 text-sm">
+                              {service.customer_name}
                             </div>
-                            <p className="text-slate-400 font-bold">لا توجد عمليات صيانة مسجلة حالياً</p>
+                          </td>
+                          <td className="text-slate-600 font-medium">
+                            {service.device_brand} {service.device_model}
+                          </td>
+                          <td className="font-extrabold text-slate-900">
+                            {formatCurrency(service.amount)}
+                          </td>
+                          <td>
+                            <span className="badge badge-success">مكتمل</span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={4}>
+                          <div className="empty-state">
+                            <div className="empty-state-icon">
+                              <Wrench className="h-6 w-6 text-slate-400" />
+                            </div>
+                            <p className="text-slate-400 font-semibold text-sm">
+                              لا توجد عمليات صيانة مسجلة حالياً
+                            </p>
                           </div>
                         </td>
                       </tr>
@@ -208,23 +250,67 @@ export default function Dashboard() {
             </div>
 
             {/* Side Cards */}
-            <div className="space-y-8">
-              <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 p-8">
-                <h2 className="text-lg font-black text-slate-900 mb-8">إحصائيات سريعة</h2>
-                <div className="space-y-5">
-                  <QuickStatItem icon={Users} label="إجمالي العملاء" value={stats.customersCount} color="bg-sky-500" />
-                  <QuickStatItem icon={Wrench} label="إجمالي الخدمات" value={stats.servicesCount} color="bg-indigo-500" />
-                  <QuickStatItem icon={Package} label="أصناف المخزون" value="42" color="bg-amber-500" />
+            <div className="space-y-6">
+              {/* Quick Stats */}
+              <div className="card">
+                <div className="card-header">
+                  <h2 className="text-base font-extrabold text-slate-900">
+                    إحصائيات سريعة
+                  </h2>
+                </div>
+                <div className="card-body space-y-3">
+                  <QuickStatItem
+                    icon={Users}
+                    label="إجمالي العملاء"
+                    value={stats.customersCount}
+                    color="#0ea5e9"
+                  />
+                  <QuickStatItem
+                    icon={Wrench}
+                    label="إجمالي الخدمات"
+                    value={stats.servicesCount}
+                    color="#6366f1"
+                  />
+                  <QuickStatItem
+                    icon={Package}
+                    label="أصناف المخزون"
+                    value={stats.inventoryCount}
+                    color="#f59e0b"
+                  />
                 </div>
               </div>
-              
-              <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-[2rem] shadow-2xl p-10 text-white relative overflow-hidden group">
+
+              {/* Reports Card */}
+              <div
+                className="rounded-xl p-6 text-white relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #0f172a, #1e293b)',
+                }}
+              >
                 <div className="relative z-10">
-                  <h3 className="text-2xl font-black mb-3">التقارير الذكية</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed mb-8 font-medium">احصل على تحليل كامل لأرباحك ومصروفاتك بضغطة زر واحدة.</p>
-                  <button className="w-full bg-sky-500 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-sky-500/20 hover:bg-sky-400 transition-all active:scale-95">تحميل تقرير الشهر</button>
+                  <h3 className="text-lg font-extrabold mb-2">التقارير الذكية</h3>
+                  <p className="text-slate-400 text-xs leading-relaxed mb-5 font-medium">
+                    احصل على تحليل كامل لأرباحك ومصروفاتك بضغطة زر واحدة.
+                  </p>
+                  <button
+                    className="w-full py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[0.98]"
+                    style={{
+                      background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
+                      boxShadow: '0 4px 15px rgba(14, 165, 233, 0.3)',
+                    }}
+                  >
+                    <Download className="h-4 w-4" />
+                    تحميل تقرير الشهر
+                  </button>
                 </div>
-                <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl group-hover:bg-sky-500/20 transition-all"></div>
+                <div
+                  className="absolute -left-8 -bottom-8 w-32 h-32 rounded-full opacity-10"
+                  style={{ background: '#0ea5e9' }}
+                />
+                <div
+                  className="absolute -right-4 -top-4 w-20 h-20 rounded-full opacity-5"
+                  style={{ background: '#0ea5e9' }}
+                />
               </div>
             </div>
           </div>
@@ -234,36 +320,51 @@ export default function Dashboard() {
   )
 }
 
-function StatCard({ title, value, icon: Icon, color, bgColor, trend, isUp, isWarning }: any) {
+function StatCard({ title, value, icon: Icon, iconBg, iconColor, trend, isUp, isWarning, accentClass }: any) {
   return (
-    <div className="bg-white rounded-[2rem] p-8 shadow-xl shadow-slate-200/40 border border-slate-100 hover:border-sky-200 transition-all group cursor-default">
-      <div className="flex items-center justify-between mb-6">
-        <div className={`p-4 rounded-2xl ${bgColor} ${color} group-hover:scale-110 transition-transform duration-300`}>
-          <Icon className="h-7 w-7" />
+    <div className={`stat-card ${accentClass}`}>
+      <div className="flex items-center justify-between mb-4">
+        <div className={`p-2.5 rounded-xl ${iconBg} ${iconColor}`}>
+          <Icon className="h-5 w-5" />
         </div>
         {trend && (
-          <div className={`flex items-center gap-1 text-[10px] font-black px-3 py-1.5 rounded-full ${isWarning ? 'bg-rose-100 text-rose-700' : isUp ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-            {isWarning ? null : isUp ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+          <div
+            className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${
+              isWarning
+                ? 'bg-amber-50 text-amber-700'
+                : isUp
+                ? 'bg-emerald-50 text-emerald-700'
+                : 'bg-rose-50 text-rose-700'
+            }`}
+          >
+            {isWarning ? null : isUp ? (
+              <ArrowUpRight className="h-3 w-3" />
+            ) : (
+              <ArrowDownRight className="h-3 w-3" />
+            )}
             {trend}
           </div>
         )}
       </div>
-      <h3 className="text-slate-400 font-bold text-sm mb-2">{title}</h3>
-      <p className="text-3xl font-black text-slate-900 tracking-tight">{value}</p>
+      <h3 className="text-slate-500 font-semibold text-xs mb-1">{title}</h3>
+      <p className="text-2xl font-extrabold text-slate-900 tracking-tight">{value}</p>
     </div>
   )
 }
 
 function QuickStatItem({ icon: Icon, label, value, color }: any) {
   return (
-    <div className="flex items-center justify-between p-5 rounded-2xl bg-slate-50/50 hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group">
-      <div className="flex items-center gap-4">
-        <div className={`p-3 rounded-xl ${color} text-white shadow-lg shadow-${color.split('-')[1]}-200 group-hover:rotate-12 transition-transform`}>
-          <Icon className="h-5 w-5" />
+    <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50/80 hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group">
+      <div className="flex items-center gap-3">
+        <div
+          className="p-2 rounded-lg text-white shadow-sm"
+          style={{ background: color }}
+        >
+          <Icon className="h-4 w-4" />
         </div>
-        <span className="text-slate-600 font-bold text-sm">{label}</span>
+        <span className="text-slate-600 font-semibold text-sm">{label}</span>
       </div>
-      <span className="text-slate-900 font-black text-lg">{value}</span>
+      <span className="text-slate-900 font-extrabold text-base">{value}</span>
     </div>
   )
 }

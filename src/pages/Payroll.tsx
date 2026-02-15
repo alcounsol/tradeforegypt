@@ -61,140 +61,149 @@ export default function Payroll() {
   const totalPaid = payrolls.reduce((sum, p) => sum + p.net_paid, 0)
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="page-layout font-['Cairo']" dir="rtl">
       <Sidebar />
-      <main className="flex-1 p-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">الرواتب</h1>
-            <p className="text-gray-500">صرف الرواتب الشهرية</p>
+      <div className="page-content">
+        <header className="top-header">
+          <div className="flex items-center gap-2">
+            <Wallet className="h-5 w-5 text-sky-600" />
+            <h1 className="text-base font-extrabold text-slate-900">الرواتب</h1>
           </div>
           <div className="flex gap-2">
-            <select value={selectedMonth} onChange={(e) => setSelectedMonth(parseInt(e.target.value))} className="px-3 py-2 border rounded-lg">
+            <select value={selectedMonth} onChange={(e) => setSelectedMonth(parseInt(e.target.value))} className="form-input" style={{ width: 'auto' }}>
               {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => <option key={m} value={m}>{m}</option>)}
             </select>
-            <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))} className="px-3 py-2 border rounded-lg">
+            <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))} className="form-input" style={{ width: 'auto' }}>
               {[2024,2025,2026].map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
-        </div>
+        </header>
 
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Wallet className="h-8 w-8 text-purple-500" />
-              <div>
-                <div className="text-sm text-gray-500">إجمالي المصروف لشهر {selectedMonth}/{selectedYear}</div>
-                <div className="text-2xl font-bold text-purple-600">{formatCurrency(totalPaid)}</div>
+        <main className="main-content">
+          <div className="mb-6">
+            <h1 className="page-title">إدارة الرواتب</h1>
+            <p className="page-subtitle">صرف ومتابعة رواتب الموظفين</p>
+          </div>
+
+          <div className="stat-card purple mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600">
+                  <Wallet className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-500">إجمالي المصروف لشهر {selectedMonth}/{selectedYear}</div>
+                  <div className="text-2xl font-extrabold text-slate-900">{formatCurrency(totalPaid)}</div>
+                </div>
+              </div>
+              <div className="text-sm font-semibold text-slate-500">
+                تم صرف: {payrolls.length} من {employees.length} موظف
               </div>
             </div>
-            <div className="text-sm text-gray-500">
-              تم صرف: {payrolls.length} من {employees.length} موظف
-            </div>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Unpaid */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-4 border-b bg-orange-50">
-              <h3 className="font-semibold text-orange-700">لم يتم الصرف ({unpaidEmployees.length})</h3>
-            </div>
-            <div className="p-4 space-y-3">
-              {loading ? (
-                <div className="text-center py-4">جاري التحميل...</div>
-              ) : unpaidEmployees.length === 0 ? (
-                <div className="text-center py-4 text-green-600">تم صرف جميع الرواتب</div>
-              ) : (
-                unpaidEmployees.map(emp => (
-                  <div key={emp.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                    <div>
-                      <div className="font-medium">{emp.name}</div>
-                      <div className="text-sm text-gray-500">{emp.job_title}</div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-left">
-                        <div className="text-sm text-gray-500">الراتب الأساسي</div>
-                        <div className="font-bold">{formatCurrency(emp.base_salary || 0)}</div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Unpaid */}
+            <div className="card overflow-hidden">
+              <div className="card-header" style={{ background: '#fffbeb' }}>
+                <h3 className="font-bold text-amber-700 text-sm">لم يتم الصرف ({unpaidEmployees.length})</h3>
+              </div>
+              <div className="card-body space-y-3">
+                {loading ? (
+                  <div className="empty-state"><p className="text-slate-400 font-semibold text-sm">جاري التحميل...</p></div>
+                ) : unpaidEmployees.length === 0 ? (
+                  <div className="empty-state"><p className="text-emerald-600 font-bold text-sm">تم صرف جميع الرواتب</p></div>
+                ) : (
+                  unpaidEmployees.map(emp => (
+                    <div key={emp.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <div>
+                        <div className="font-bold text-slate-900 text-sm">{emp.name}</div>
+                        <div className="text-xs text-slate-500">{emp.job_title}</div>
                       </div>
-                      <button onClick={() => openPayrollForm(emp)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm">
-                        صرف
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Paid */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-4 border-b bg-green-50">
-              <h3 className="font-semibold text-green-700">تم الصرف ({payrolls.length})</h3>
-            </div>
-            <div className="p-4 space-y-3">
-              {payrolls.length === 0 ? (
-                <div className="text-center py-4 text-gray-500">لا توجد رواتب مصروفة</div>
-              ) : (
-                payrolls.map(pay => {
-                  const emp = employees.find(e => e.id === pay.employee_id)
-                  return (
-                    <div key={pay.id} className="p-3 bg-gray-50 rounded">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <div className="font-medium">{emp?.name || 'موظف'}</div>
-                          <div className="text-sm text-gray-500">{emp?.job_title}</div>
-                        </div>
+                      <div className="flex items-center gap-3">
                         <div className="text-left">
-                          <div className="font-bold text-green-600">{formatCurrency(pay.net_paid)}</div>
-                          <div className="text-xs text-gray-400">{pay.paid_date}</div>
+                          <div className="text-xs text-slate-500">الراتب الأساسي</div>
+                          <div className="font-bold text-sm">{formatCurrency(emp.base_salary || 0)}</div>
                         </div>
-                      </div>
-                      <div className="flex gap-4 text-xs text-gray-500">
-                        <span>أساسي: {formatCurrency(pay.base_salary)}</span>
-                        {pay.bonus > 0 && <span className="text-green-600">+ حوافز: {formatCurrency(pay.bonus)}</span>}
-                        {pay.deductions > 0 && <span className="text-red-600">- خصم: {formatCurrency(pay.deductions)}</span>}
+                        <button onClick={() => openPayrollForm(emp)} className="btn btn-primary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem' }}>
+                          صرف
+                        </button>
                       </div>
                     </div>
-                  )
-                })
-              )}
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-        </div>
 
-        {showForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">صرف راتب</h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">الراتب الأساسي</label>
-                  <input type="number" value={formData.base_salary} onChange={(e) => setFormData({...formData, base_salary: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">الحوافز</label>
-                  <input type="number" value={formData.bonus} onChange={(e) => setFormData({...formData, bonus: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">الخصومات</label>
-                  <input type="number" value={formData.deductions} onChange={(e) => setFormData({...formData, deductions: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" />
-                </div>
-                <div className="p-3 bg-purple-50 rounded">
-                  <div className="text-sm text-gray-500">صافي المستحق</div>
-                  <div className="text-2xl font-bold text-purple-600">
-                    {formatCurrency(formData.base_salary + formData.bonus - formData.deductions)}
-                  </div>
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <button type="submit" className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600">صرف</button>
-                  <button type="button" onClick={() => setShowForm(false)} className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300">إلغاء</button>
-                </div>
-              </form>
+            {/* Paid */}
+            <div className="card overflow-hidden">
+              <div className="card-header" style={{ background: '#ecfdf5' }}>
+                <h3 className="font-bold text-emerald-700 text-sm">تم الصرف ({payrolls.length})</h3>
+              </div>
+              <div className="card-body space-y-3">
+                {payrolls.length === 0 ? (
+                  <div className="empty-state"><p className="text-slate-400 font-semibold text-sm">لا توجد رواتب مصروفة</p></div>
+                ) : (
+                  payrolls.map(pay => {
+                    const emp = employees.find(e => e.id === pay.employee_id)
+                    return (
+                      <div key={pay.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <div className="font-bold text-slate-900 text-sm">{emp?.name || 'موظف'}</div>
+                            <div className="text-xs text-slate-500">{emp?.job_title}</div>
+                          </div>
+                          <div className="text-left">
+                            <div className="font-extrabold text-emerald-600">{formatCurrency(pay.net_paid)}</div>
+                            <div className="text-[10px] text-slate-400">{pay.paid_date}</div>
+                          </div>
+                        </div>
+                        <div className="flex gap-4 text-xs text-slate-500">
+                          <span>أساسي: {formatCurrency(pay.base_salary)}</span>
+                          {pay.bonus > 0 && <span className="text-emerald-600">+ حوافز: {formatCurrency(pay.bonus)}</span>}
+                          {pay.deductions > 0 && <span className="text-rose-600">- خصم: {formatCurrency(pay.deductions)}</span>}
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
             </div>
           </div>
-        )}
-      </main>
+
+          {showForm && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h2 className="text-lg font-extrabold mb-5">صرف راتب</h2>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="form-label">الراتب الأساسي</label>
+                    <input type="number" value={formData.base_salary} onChange={(e) => setFormData({...formData, base_salary: parseFloat(e.target.value) || 0})} className="form-input" />
+                  </div>
+                  <div>
+                    <label className="form-label">الحوافز</label>
+                    <input type="number" value={formData.bonus} onChange={(e) => setFormData({...formData, bonus: parseFloat(e.target.value) || 0})} className="form-input" />
+                  </div>
+                  <div>
+                    <label className="form-label">الخصومات</label>
+                    <input type="number" value={formData.deductions} onChange={(e) => setFormData({...formData, deductions: parseFloat(e.target.value) || 0})} className="form-input" />
+                  </div>
+                  <div className="p-3 bg-purple-50 rounded-xl">
+                    <div className="text-xs font-semibold text-slate-500">صافي المستحق</div>
+                    <div className="text-2xl font-extrabold text-purple-600">
+                      {formatCurrency(formData.base_salary + formData.bonus - formData.deductions)}
+                    </div>
+                  </div>
+                  <div className="flex gap-3 pt-3">
+                    <button type="submit" className="btn btn-primary flex-1">صرف</button>
+                    <button type="button" onClick={() => setShowForm(false)} className="btn btn-secondary flex-1">إلغاء</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   )
 }

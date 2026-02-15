@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Customer } from '../lib/supabase'
 import Sidebar from '../components/Sidebar'
-import { Plus, Search, Edit, Trash2, Phone, Mail } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Phone, Mail, UserCircle } from 'lucide-react'
 
 export default function Customers() {
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -71,21 +71,27 @@ export default function Customers() {
   const filteredCustomers = customers.filter(c => c.name.includes(search) || c.phone?.includes(search))
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="page-layout font-['Cairo']" dir="rtl">
       <Sidebar />
-      <main className="flex-1 p-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">العملاء</h1>
-            <p className="text-gray-500">إدارة بيانات العملاء</p>
+      <div className="page-content">
+        <header className="top-header">
+          <div className="flex items-center gap-2">
+            <UserCircle className="h-5 w-5 text-sky-600" />
+            <h1 className="text-base font-extrabold text-slate-900">العملاء</h1>
           </div>
-          <button onClick={() => { setShowForm(true); setEditItem(null); resetForm(); }} className="flex items-center gap-2 bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600">
+          <button onClick={() => { setShowForm(true); setEditItem(null); resetForm(); }} className="btn btn-primary">
             <Plus className="h-5 w-5" />
             إضافة عميل
           </button>
-        </div>
+        </header>
 
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <main className="main-content">
+          <div className="mb-6">
+            <h1 className="page-title">العملاء</h1>
+            <p className="page-subtitle">إدارة بيانات العملاء</p>
+          </div>
+
+        <div className="mb-5">
           <div className="relative">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input type="text" placeholder="بحث بالاسم أو رقم الهاتف..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pr-10 pl-4 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500" />
@@ -103,8 +109,8 @@ export default function Customers() {
                 <div className="flex justify-between items-start mb-3">
                   <h3 className="font-bold text-lg">{cust.name}</h3>
                   <div className="flex gap-2">
-                    <button onClick={() => openEdit(cust)} className="text-blue-500 hover:text-blue-700"><Edit className="h-4 w-4" /></button>
-                    <button onClick={() => handleDelete(cust.id)} className="text-red-500 hover:text-red-700"><Trash2 className="h-4 w-4" /></button>
+                    <button onClick={() => openEdit(cust)} className="icon-btn edit"><Edit className="h-4 w-4" /></button>
+                    <button onClick={() => handleDelete(cust.id)} className="icon-btn delete"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </div>
                 {cust.phone && (
@@ -126,39 +132,40 @@ export default function Customers() {
         </div>
 
         {showForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="modal-overlay">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">{editItem ? 'تعديل عميل' : 'إضافة عميل جديد'}</h2>
+              <h2 className="text-lg font-extrabold mb-5">{editItem ? 'تعديل عميل' : 'إضافة عميل جديد'}</h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">الاسم *</label>
-                  <input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500" />
+                  <label className="form-label">الاسم *</label>
+                  <input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="form-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">رقم الهاتف</label>
-                  <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500" />
+                  <label className="form-label">رقم الهاتف</label>
+                  <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="form-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">البريد الإلكتروني</label>
-                  <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500" />
+                  <label className="form-label">البريد الإلكتروني</label>
+                  <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="form-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">العنوان</label>
-                  <input type="text" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500" />
+                  <label className="form-label">العنوان</label>
+                  <input type="text" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="form-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">ملاحظات</label>
-                  <textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={2} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500" />
+                  <label className="form-label">ملاحظات</label>
+                  <textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={2} className="form-input" />
                 </div>
-                <div className="flex gap-3 pt-4">
-                  <button type="submit" className="flex-1 bg-sky-500 text-white py-2 rounded-lg hover:bg-sky-600">{editItem ? 'تحديث' : 'إضافة'}</button>
-                  <button type="button" onClick={() => { setShowForm(false); setEditItem(null); }} className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300">إلغاء</button>
+                <div className="flex gap-3 pt-3">
+                  <button type="submit" className="btn btn-primary flex-1">{editItem ? 'تحديث' : 'إضافة'}</button>
+                  <button type="button" onClick={() => { setShowForm(false); setEditItem(null); }} className="btn btn-secondary flex-1">إلغاء</button>
                 </div>
               </form>
             </div>
           </div>
         )}
       </main>
+      </div>
     </div>
   )
 }

@@ -10,9 +10,9 @@ import {
   UserCircle,
   Building,
   FileText,
-  ChevronLeft,
   Settings,
-  LogOut
+  LogOut,
+  ChevronLeft
 } from 'lucide-react'
 
 const menuItems = [
@@ -32,78 +32,123 @@ export default function Sidebar() {
   const location = useLocation()
 
   return (
-    <aside className="w-80 bg-[#0f172a] text-slate-400 min-h-screen sticky top-0 flex flex-col z-20 shadow-[20px_0_60px_-15px_rgba(0,0,0,0.3)]">
+    <aside
+      className="w-[280px] min-h-screen sticky top-0 flex flex-col z-20 text-slate-400"
+      style={{
+        background: 'linear-gradient(180deg, #0c1222 0%, #111d35 50%, #0f172a 100%)',
+      }}
+    >
       {/* Logo Section */}
-      <div className="p-10">
-        <div className="flex items-center gap-4 mb-3">
-          <div className="w-12 h-12 bg-gradient-to-tr from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-xl shadow-sky-500/20 rotate-3">
-            <Building className="text-white h-7 w-7" />
+      <div className="px-7 pt-8 pb-6">
+        <div className="flex items-center gap-3.5">
+          <div
+            className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg"
+            style={{ background: 'linear-gradient(135deg, #0ea5e9, #0284c7)' }}
+          >
+            <Building className="text-white h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-white tracking-tighter">TRADE FOR</h1>
-            <div className="text-sky-500 font-black text-xs tracking-[0.3em] -mt-1">EGYPT</div>
+            <h1 className="text-lg font-extrabold text-white tracking-tight leading-none">
+              TRADE FOR EGYPT
+            </h1>
+            <div className="text-[10px] font-bold text-sky-400/80 tracking-[0.15em] mt-0.5">
+              نظام إدارة متكامل
+            </div>
           </div>
         </div>
       </div>
-      
+
+      {/* Divider */}
+      <div className="mx-6 h-px bg-gradient-to-l from-transparent via-slate-700/50 to-transparent" />
+
       {/* Navigation */}
-      <nav className="flex-1 px-6 overflow-y-auto custom-scrollbar pb-10">
-        <div className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-6 px-4">القائمة الرئيسية</div>
-        <ul className="space-y-2">
+      <nav className="flex-1 px-4 pt-6 pb-4 overflow-y-auto custom-scrollbar">
+        <div className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.15em] mb-3 px-3">
+          القائمة الرئيسية
+        </div>
+        <ul className="space-y-1">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.href
             return (
               <li key={item.href}>
                 <Link
                   to={item.href}
-                  className={`flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 group ${
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-200 group ${
                     isActive
-                      ? 'bg-sky-500 text-white shadow-2xl shadow-sky-500/40 translate-x-[-4px]'
-                      : 'hover:bg-slate-800/50 hover:text-slate-200'
+                      ? 'text-white shadow-lg'
+                      : 'hover:bg-white/[0.04] hover:text-slate-200'
                   }`}
+                  style={
+                    isActive
+                      ? {
+                          background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
+                          boxShadow: '0 4px 15px rgba(14, 165, 233, 0.35)',
+                        }
+                      : undefined
+                  }
                 >
-                  <div className="flex items-center gap-4">
-                    <item.icon className={`h-5 w-5 transition-all duration-300 ${isActive ? 'text-white scale-110' : 'text-slate-500 group-hover:text-sky-400 group-hover:rotate-12'}`} />
-                    <span className={`font-bold text-sm ${isActive ? 'text-white' : 'text-slate-400'}`}>{item.label}</span>
+                  <div className="flex items-center gap-3">
+                    <item.icon
+                      className={`h-[18px] w-[18px] transition-all duration-200 ${
+                        isActive
+                          ? 'text-white'
+                          : 'text-slate-500 group-hover:text-sky-400'
+                      }`}
+                    />
+                    <span
+                      className={`font-semibold text-[13px] ${
+                        isActive ? 'text-white' : 'text-slate-400'
+                      }`}
+                    >
+                      {item.label}
+                    </span>
                   </div>
-                  {isActive && <ChevronLeft className="h-4 w-4 animate-pulse" />}
+                  {isActive && <ChevronLeft className="h-3.5 w-3.5 text-white/70" />}
                 </Link>
               </li>
             )
           })}
         </ul>
 
-        <div className="mt-10 pt-10 border-t border-slate-800/50">
-          <div className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-6 px-4">النظام</div>
-          <ul className="space-y-2">
+        {/* System Section */}
+        <div className="mt-8 pt-6 border-t border-slate-800/60">
+          <div className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.15em] mb-3 px-3">
+            النظام
+          </div>
+          <ul className="space-y-1">
             <li>
-              <button className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 transition-all group">
-                <Settings className="h-5 w-5 group-hover:rotate-90 transition-transform duration-500" />
-                <span className="font-bold text-sm">الإعدادات</span>
+              <button className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-400 hover:bg-white/[0.04] hover:text-slate-200 transition-all group">
+                <Settings className="h-[18px] w-[18px] text-slate-500 group-hover:text-sky-400 group-hover:rotate-90 transition-all duration-500" />
+                <span className="font-semibold text-[13px]">الإعدادات</span>
               </button>
             </li>
             <li>
-              <button className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-rose-400/70 hover:bg-rose-500/10 hover:text-rose-400 transition-all group">
-                <LogOut className="h-5 w-5 group-hover:translate-x-[-4px] transition-transform" />
-                <span className="font-bold text-sm">تسجيل الخروج</span>
+              <button className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-rose-400/60 hover:bg-rose-500/10 hover:text-rose-400 transition-all group">
+                <LogOut className="h-[18px] w-[18px] group-hover:translate-x-[-3px] transition-transform" />
+                <span className="font-semibold text-[13px]">تسجيل الخروج</span>
               </button>
             </li>
           </ul>
         </div>
       </nav>
 
-      {/* User Profile Section */}
-      <div className="p-8 bg-slate-900/50 border-t border-slate-800/50">
-        <div className="flex items-center gap-4 p-4 bg-slate-800/30 rounded-[1.5rem] border border-slate-700/30">
+      {/* User Profile */}
+      <div className="p-4 border-t border-slate-800/60">
+        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-slate-700/30">
           <div className="relative">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center text-white font-black text-lg shadow-inner">
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-inner"
+              style={{ background: 'linear-gradient(135deg, #475569, #334155)' }}
+            >
               A
             </div>
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-4 border-[#0f172a]"></div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#0f172a]" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-black text-white">أحمد محمد</span>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">المدير العام</span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-bold text-white truncate">أدمن</span>
+            <span className="text-[10px] font-semibold text-slate-500 truncate">
+              المدير العام
+            </span>
           </div>
         </div>
       </div>
