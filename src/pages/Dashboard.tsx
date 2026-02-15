@@ -96,7 +96,7 @@ export default function Dashboard() {
       <Sidebar />
       <main className="flex-1 p-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">لوحة التحكم</h1>
+          <h1 className="text-2xl font-bold">لوحة تحكم Trade For Egypt</h1>
           <p className="text-gray-500">نظرة عامة على الأداء المالي لشهر {new Date().getMonth() + 1}/{new Date().getFullYear()}</p>
         </div>
 
