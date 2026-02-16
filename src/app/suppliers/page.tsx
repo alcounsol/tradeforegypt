@@ -45,8 +45,8 @@ export default function Suppliers() {
   return (
     <div className="flex min-h-screen" dir="rtl">
       <Sidebar />
-      <main className="flex-1 mr-[260px] p-8">
-        <PageHeader title="الموردين" subtitle="إدارة بيانات الموردين" icon={Truck} iconColor="text-orange-500" buttonLabel="إضافة مورد" onButtonClick={openAdd}>
+      <main className="flex-1 mr-[250px] p-8">
+        <PageHeader title="الموردين" subtitle="إدارة بيانات الموردين" icon={Truck} iconBg="from-orange-500 to-orange-600" buttonLabel="إضافة مورد" onButtonClick={openAdd}>
           <Input placeholder="بحث..." value={search} onValueChange={setSearch} startContent={<Search className="h-4 w-4 text-slate-400" />} className="w-64" variant="bordered" size="sm" />
         </PageHeader>
 
@@ -84,7 +84,7 @@ export default function Suppliers() {
           </div>
         )}
 
-        <Modal isOpen={isOpen} onClose={onClose} size="xl" backdrop="blur" placement="center">
+        <Modal isOpen={isOpen} onClose={onClose} size="xl" backdrop="blur" placement="auto">
           <ModalContent>
             <ModalHeader className="font-extrabold">{editItem ? 'تعديل مورد' : 'إضافة مورد جديد'}</ModalHeader>
             <ModalBody className="gap-4">

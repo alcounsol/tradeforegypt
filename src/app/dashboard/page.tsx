@@ -67,7 +67,7 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-screen" dir="rtl">
       <Sidebar />
-      <main className="flex-1 mr-[260px] p-8">
+      <main className="flex-1 mr-[250px] p-8">
         {/* Welcome */}
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold text-slate-900">أهلاً بك، أدمن 👋</h1>

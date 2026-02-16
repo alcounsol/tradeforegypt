@@ -66,8 +66,8 @@ export default function Purchases() {
   return (
     <div className="flex min-h-screen" dir="rtl">
       <Sidebar />
-      <main className="flex-1 mr-[260px] p-8">
-        <PageHeader title="المشتريات" subtitle="إدارة عمليات الشراء والتوريد" icon={ShoppingCart} iconColor="text-cyan-500" buttonLabel="إضافة عملية شراء" onButtonClick={openAdd} />
+      <main className="flex-1 mr-[250px] p-8">
+        <PageHeader title="المشتريات" subtitle="إدارة عمليات الشراء والتوريد" icon={ShoppingCart} iconBg="from-cyan-500 to-cyan-600" buttonLabel="إضافة عملية شراء" onButtonClick={openAdd} />
 
         <Card className="shadow-md">
           <CardBody className="p-0">
@@ -111,7 +111,7 @@ export default function Purchases() {
           </CardBody>
         </Card>
 
-        <Modal isOpen={isOpen} onClose={onClose} size="2xl" backdrop="blur" placement="center">
+        <Modal isOpen={isOpen} onClose={onClose} size="2xl" backdrop="blur" placement="auto">
           <ModalContent>
             <ModalHeader className="font-extrabold text-lg">إضافة عملية شراء</ModalHeader>
             <ModalBody>

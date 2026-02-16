@@ -76,8 +76,8 @@ export default function Reports() {
   return (
     <div className="flex min-h-screen" dir="rtl">
       <Sidebar />
-      <main className="flex-1 mr-[260px] p-8">
-        <PageHeader title="التقارير" subtitle={`تحليل مالي شامل لشهر ${selectedMonth}/${selectedYear}`} icon={FileBarChart} iconColor="text-indigo-500">
+      <main className="flex-1 mr-[250px] p-8">
+        <PageHeader title="التقارير" subtitle={`تحليل مالي شامل لشهر ${selectedMonth}/${selectedYear}`} icon={FileBarChart} iconBg="from-indigo-500 to-indigo-600">
           <Select size="sm" selectedKeys={[String(selectedMonth)]} onSelectionChange={(keys) => setSelectedMonth(Number(Array.from(keys)[0]))} className="w-24" variant="bordered" aria-label="الشهر">
             {months.map(m => <SelectItem key={String(m)}>{String(m)}</SelectItem>)}
           </Select>

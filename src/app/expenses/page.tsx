@@ -46,8 +46,8 @@ export default function Expenses() {
   return (
     <div className="flex min-h-screen" dir="rtl">
       <Sidebar />
-      <main className="flex-1 mr-[260px] p-8">
-        <PageHeader title="المصروفات" subtitle="إدارة وتتبع المصروفات" icon={Receipt} iconColor="text-rose-500" buttonLabel="إضافة مصروف" onButtonClick={openAdd} />
+      <main className="flex-1 mr-[250px] p-8">
+        <PageHeader title="المصروفات" subtitle="إدارة وتتبع المصروفات" icon={Receipt} iconBg="from-rose-500 to-rose-600" buttonLabel="إضافة مصروف" onButtonClick={openAdd} />
         <Card className="shadow-md">
           <CardBody className="p-0">
             {loading ? <div className="flex items-center justify-center h-48"><Spinner size="lg" /></div>
@@ -87,7 +87,7 @@ export default function Expenses() {
           </CardBody>
         </Card>
 
-        <Modal isOpen={isOpen} onClose={onClose} size="xl" backdrop="blur" placement="center">
+        <Modal isOpen={isOpen} onClose={onClose} size="xl" backdrop="blur" placement="auto">
           <ModalContent>
             <ModalHeader className="font-extrabold">{editItem ? 'تعديل مصروف' : 'إضافة مصروف جديد'}</ModalHeader>
             <ModalBody className="gap-4">

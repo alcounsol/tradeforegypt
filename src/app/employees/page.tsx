@@ -43,8 +43,8 @@ export default function Employees() {
   return (
     <div className="flex min-h-screen" dir="rtl">
       <Sidebar />
-      <main className="flex-1 mr-[260px] p-8">
-        <PageHeader title="الموظفين" subtitle="إدارة بيانات الموظفين" icon={Users} iconColor="text-violet-500" buttonLabel="إضافة موظف" onButtonClick={openAdd} />
+      <main className="flex-1 mr-[250px] p-8">
+        <PageHeader title="الموظفين" subtitle="إدارة بيانات الموظفين" icon={Users} iconBg="from-violet-500 to-violet-600" buttonLabel="إضافة موظف" onButtonClick={openAdd} />
 
         {loading ? <div className="flex items-center justify-center h-48"><Spinner size="lg" /></div>
         : employees.length === 0 ? (
@@ -83,7 +83,7 @@ export default function Employees() {
           </div>
         )}
 
-        <Modal isOpen={isOpen} onClose={onClose} size="xl" backdrop="blur" placement="center">
+        <Modal isOpen={isOpen} onClose={onClose} size="xl" backdrop="blur" placement="auto">
           <ModalContent>
             <ModalHeader className="font-extrabold">{editItem ? 'تعديل موظف' : 'إضافة موظف جديد'}</ModalHeader>
             <ModalBody className="gap-4">

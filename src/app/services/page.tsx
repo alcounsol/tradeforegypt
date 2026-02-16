@@ -47,8 +47,8 @@ export default function Services() {
   return (
     <div className="flex min-h-screen" dir="rtl">
       <Sidebar />
-      <main className="flex-1 mr-[260px] p-8">
-        <PageHeader title="الخدمات" subtitle="إدارة خدمات الكشف والصيانة" icon={Wrench} iconColor="text-amber-500" buttonLabel="تسجيل خدمة" onButtonClick={openAdd}>
+      <main className="flex-1 mr-[250px] p-8">
+        <PageHeader title="الخدمات" subtitle="إدارة خدمات الكشف والصيانة" icon={Wrench} iconBg="from-amber-500 to-amber-600" buttonLabel="تسجيل خدمة" onButtonClick={openAdd}>
           <Input placeholder="بحث..." value={search} onValueChange={setSearch} startContent={<Search className="h-4 w-4 text-slate-400" />} className="w-64" variant="bordered" size="sm" />
         </PageHeader>
 
@@ -93,7 +93,7 @@ export default function Services() {
           </CardBody>
         </Card>
 
-        <Modal isOpen={isOpen} onClose={onClose} size="3xl" backdrop="blur" placement="center">
+        <Modal isOpen={isOpen} onClose={onClose} size="3xl" backdrop="blur" placement="auto">
           <ModalContent>
             <ModalHeader className="font-extrabold">{editItem ? 'تعديل خدمة' : 'تسجيل خدمة جديدة'}</ModalHeader>
             <ModalBody className="gap-4">

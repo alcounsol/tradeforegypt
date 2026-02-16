@@ -63,8 +63,8 @@ export default function Payroll() {
   return (
     <div className="flex min-h-screen" dir="rtl">
       <Sidebar />
-      <main className="flex-1 mr-[260px] p-8">
-        <PageHeader title="الرواتب" subtitle="إدارة رواتب الموظفين" icon={Wallet} iconColor="text-pink-500" buttonLabel="صرف راتب" onButtonClick={openAdd} />
+      <main className="flex-1 mr-[250px] p-8">
+        <PageHeader title="الرواتب" subtitle="إدارة رواتب الموظفين" icon={Wallet} iconBg="from-pink-500 to-pink-600" buttonLabel="صرف راتب" onButtonClick={openAdd} />
 
         <Card className="shadow-md">
           <CardBody className="p-0">
@@ -104,7 +104,7 @@ export default function Payroll() {
           </CardBody>
         </Card>
 
-        <Modal isOpen={isOpen} onClose={onClose} size="xl" backdrop="blur" placement="center">
+        <Modal isOpen={isOpen} onClose={onClose} size="xl" backdrop="blur" placement="auto">
           <ModalContent>
             <ModalHeader className="font-extrabold">صرف راتب</ModalHeader>
             <ModalBody className="gap-4">
