@@ -100,7 +100,7 @@ export default function Services() {
                 <Button variant={formData.service_type === 'INSPECTION' ? 'shadow' : 'flat'} color={formData.service_type === 'INSPECTION' ? 'primary' : 'default'} onPress={() => setFormData({...formData, service_type: 'INSPECTION'})} className="flex-1 font-bold">كشف</Button>
                 <Button variant={formData.service_type === 'REPAIR' ? 'shadow' : 'flat'} color={formData.service_type === 'REPAIR' ? 'success' : 'default'} onPress={() => setFormData({...formData, service_type: 'REPAIR'})} className="flex-1 font-bold">صيانة</Button>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4">
                 <Input labelPlacement="outside" label="اسم العميل" value={formData.customer_name} onValueChange={(v) => setFormData({...formData, customer_name: v})} variant="bordered" />
                 <Input labelPlacement="outside" label="رقم الهاتف" value={formData.customer_phone} onValueChange={(v) => setFormData({...formData, customer_phone: v})} variant="bordered" />
               </div>

@@ -112,7 +112,7 @@ export default function Inventory() {
               <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">{editItem ? 'تحديث' : 'إضافة'}</button>
             </>
           }>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-4">
                 <Input labelPlacement="outside" label="اسم الصنف" isRequired value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})} variant="bordered" />
                 <Input labelPlacement="outside" label="رمز الصنف (SKU)" value={formData.sku} onValueChange={(v) => setFormData({...formData, sku: v})} variant="bordered" />
                 <Input labelPlacement="outside" label="الفئة" value={formData.category} onValueChange={(v) => setFormData({...formData, category: v})} variant="bordered" />

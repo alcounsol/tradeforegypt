@@ -110,12 +110,12 @@ export default function Payroll() {
                         <Select label="الموظف" isRequired selectedKeys={formData.employee_id ? [String(formData.employee_id)] : []} onSelectionChange={(keys) => selectEmployee(Number(Array.from(keys)[0]))} variant="bordered" labelPlacement="outside">
                 {employees.map(e => <SelectItem key={String(e.id)}>{e.name}</SelectItem>)}
               </Select>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4">
                 <Input labelPlacement="outside" label="الشهر" type="number" value={String(formData.period_month)} onValueChange={(v) => setFormData({...formData, period_month: parseInt(v) || 1})} variant="bordered" />
                 <Input labelPlacement="outside" label="السنة" type="number" value={String(formData.period_year)} onValueChange={(v) => setFormData({...formData, period_year: parseInt(v) || 2026})} variant="bordered" />
               </div>
               <FormInput label="الراتب الأساسي" type="number" value={String(formData.base_salary)} onChange={(v) => updateCalc('base_salary', parseFloat(v) || 0)} />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4">
                 <FormInput label="المكافآت" type="number" value={String(formData.bonus)} onChange={(v) => updateCalc('bonus', parseFloat(v) || 0)} />
                 <FormInput label="الخصومات" type="number" value={String(formData.deductions)} onChange={(v) => updateCalc('deductions', parseFloat(v) || 0)} />
               </div>

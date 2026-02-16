@@ -90,7 +90,7 @@ export default function Suppliers() {
           }>
                         <Input labelPlacement="outside" label="اسم الشركة/المورد" isRequired value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})} variant="bordered" />
               <Input labelPlacement="outside" label="الشخص المسؤول" value={formData.contact_person} onValueChange={(v) => setFormData({...formData, contact_person: v})} variant="bordered" />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4">
                 <Input labelPlacement="outside" label="رقم الهاتف" value={formData.phone} onValueChange={(v) => setFormData({...formData, phone: v})} variant="bordered" />
                 <Input labelPlacement="outside" label="البريد الإلكتروني" value={formData.email} onValueChange={(v) => setFormData({...formData, email: v})} variant="bordered" />
               </div>

@@ -114,7 +114,7 @@ export default function Purchases() {
               <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">إضافة</button>
             </>
           }>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-4">
                 <Select label="الصنف" isRequired selectedKeys={formData.item_id ? [String(formData.item_id)] : []} onSelectionChange={(keys) => { const v = Array.from(keys)[0]; setFormData({...formData, item_id: Number(v)}) }} variant="bordered" labelPlacement="outside">
                   {items.map(i => <SelectItem key={String(i.id)}>{i.name}</SelectItem>)}
                 </Select>

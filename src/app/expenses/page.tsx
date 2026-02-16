@@ -97,7 +97,7 @@ export default function Expenses() {
               <Select label="الفئة" isRequired selectedKeys={formData.category ? [formData.category] : []} onSelectionChange={(keys) => setFormData({...formData, category: Array.from(keys)[0] as string})} variant="bordered" labelPlacement="outside">
                 {categories.map(c => <SelectItem key={c}>{c}</SelectItem>)}
               </Select>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4">
                 <Input labelPlacement="outside" label="المبلغ" type="number" isRequired value={String(formData.amount)} onValueChange={(v) => setFormData({...formData, amount: parseFloat(v) || 0})} variant="bordered" />
                 <Input labelPlacement="outside" label="التاريخ" type="date" value={formData.expense_date} onValueChange={(v) => setFormData({...formData, expense_date: v})} variant="bordered" />
               </div>
