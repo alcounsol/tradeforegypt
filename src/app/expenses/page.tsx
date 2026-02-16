@@ -6,8 +6,9 @@ import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
 import FormInput, { FormSelect, FormTextarea } from '@/components/FormInput'
+import { ModalSubmitButton, ModalCancelButton, SearchInput } from '@/components/ActionButtons'
 import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button,  Chip, Tooltip, Spinner } from '@nextui-org/react'
-import { Receipt, Search, Edit, Trash2 } from 'lucide-react'
+import { Receipt, Edit, Trash2 } from 'lucide-react'
 
 const categories = ['إيجار', 'كهرباء', 'مياه', 'إنترنت', 'صيانة', 'نقل', 'مواد استهلاكية', 'أخرى']
 
@@ -48,16 +49,7 @@ export default function Expenses() {
   return (
     <div className="w-full">
         <PageHeader title="المصروفات" subtitle="إدارة المصروفات والنفقات" icon={Receipt} iconBg="from-rose-500 to-rose-600" buttonLabel="إضافة مصروف" onButtonClick={openAdd}>
-          <div className="relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="بحث..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-9 w-56 pr-9 pl-3 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+          <SearchInput value={search} onChange={setSearch} placeholder="بحث في المصروفات..." />
         </PageHeader>
 
         <Card className="shadow-md">
@@ -99,8 +91,8 @@ export default function Expenses() {
 
         <CustomModal isOpen={isOpen} onClose={onClose} title={editItem ? 'تعديل مصروف' : 'إضافة مصروف جديد'} footer={
             <>
-              <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">إلغاء</button>
-              <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">{editItem ? 'تحديث' : 'إضافة'}</button>
+              <ModalCancelButton label="إلغاء" onClick={onClose} />
+              <ModalSubmitButton label={editItem ? 'تحديث' : 'إضافة'} onClick={handleSubmit} color="from-rose-500 to-rose-600" />
             </>
           }>
             <div className="flex flex-col gap-4">
@@ -110,7 +102,6 @@ export default function Expenses() {
                 <FormSelect label="الفئة" value={formData.category} onChange={(v) => setFormData({...formData, category: v})} options={categories.map(c => ({ value: c, label: c }))} placeholder="اختر الفئة" />
               </div>
               <FormInput label="التاريخ" type="date" value={formData.expense_date} onChange={(v) => setFormData({...formData, expense_date: v})} />
-              
             </div>
           </CustomModal>
     </div>

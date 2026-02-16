@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
+import { ExportButton, StyledSelect } from '@/components/ActionButtons'
 import {
   Card, CardBody, CardHeader, Spinner, Divider
 } from '@nextui-org/react'
@@ -70,36 +71,15 @@ export default function Reports() {
     link.click()
   }
 
+  const monthOptions = [1,2,3,4,5,6,7,8,9,10,11,12].map(m => ({ value: m, label: `شهر ${m}` }))
+  const yearOptions = [2024,2025,2026].map(y => ({ value: y, label: String(y) }))
+
   return (
     <div className="w-full">
       <PageHeader title="التقارير" subtitle={`تحليل مالي شامل لشهر ${selectedMonth}/${selectedYear}`} icon={FileBarChart} iconBg="from-indigo-500 to-indigo-600">
-        <select
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(Number(e.target.value))}
-          className="h-9 px-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer appearance-none"
-          style={{ minWidth: '90px' }}
-        >
-          {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
-            <option key={m} value={m}>شهر {m}</option>
-          ))}
-        </select>
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
-          className="h-9 px-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer appearance-none"
-          style={{ minWidth: '80px' }}
-        >
-          {[2024,2025,2026].map(y => (
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
-        <button
-          onClick={exportCSV}
-          className="flex items-center gap-1.5 h-9 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
-        >
-          <Download className="h-4 w-4" />
-          تصدير CSV
-        </button>
+        <StyledSelect value={selectedMonth} onChange={(v) => setSelectedMonth(Number(v))} options={monthOptions} minWidth="110px" />
+        <StyledSelect value={selectedYear} onChange={(v) => setSelectedYear(Number(v))} options={yearOptions} minWidth="90px" />
+        <ExportButton label="تصدير CSV" onClick={exportCSV} icon={Download} />
       </PageHeader>
 
       {loading ? <div className="flex items-center justify-center h-64"><Spinner size="lg" /></div> : (

@@ -52,13 +52,13 @@ export default function CustomModal({ isOpen, onClose, title, children, footer, 
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" style={{ top: 0, left: 0, right: 0, bottom: 0 }} />
       
       {/* Dialog */}
-      <div className={`relative w-full ${sizeClasses[size]} bg-white rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200`} dir="rtl">
+      <div className={`relative w-full ${sizeClasses[size]} bg-white rounded-3xl shadow-2xl animate-in fade-in zoom-in-95 duration-200`} dir="rtl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <h2 className="text-lg font-extrabold text-gray-800">{title}</h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-400 transition-all duration-200 hover:bg-red-50 hover:text-red-500 hover:rotate-90"
           >
             <X className="h-4 w-4" />
           </button>
@@ -71,7 +71,7 @@ export default function CustomModal({ isOpen, onClose, title, children, footer, 
         
         {/* Footer */}
         {footer && (
-          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100">
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-3xl">
             {footer}
           </div>
         )}

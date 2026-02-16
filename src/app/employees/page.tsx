@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
 import FormInput, { FormCheckbox } from '@/components/FormInput'
+import { ModalSubmitButton, ModalCancelButton } from '@/components/ActionButtons'
 import { Card, CardBody, Button, Chip, Tooltip, Spinner } from '@nextui-org/react'
 import { Users, Edit, Trash2, Phone, Briefcase } from 'lucide-react'
 
@@ -83,8 +84,8 @@ export default function Employees() {
 
         <CustomModal isOpen={isOpen} onClose={onClose} title={editItem ? 'تعديل موظف' : 'إضافة موظف جديد'} footer={
             <>
-              <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">إلغاء</button>
-              <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">{editItem ? 'تحديث' : 'إضافة'}</button>
+              <ModalCancelButton label="إلغاء" onClick={onClose} />
+              <ModalSubmitButton label={editItem ? 'تحديث' : 'إضافة'} onClick={handleSubmit} color="from-violet-500 to-violet-600" />
             </>
           }>
             <div className="flex flex-col gap-4">

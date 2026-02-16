@@ -6,8 +6,9 @@ import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
 import FormInput, { FormSelect } from '@/components/FormInput'
+import { ModalSubmitButton, ModalCancelButton, SearchInput } from '@/components/ActionButtons'
 import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button,  Chip, Tooltip, Spinner } from '@nextui-org/react'
-import { ShoppingCart, Search, Edit, Trash2 } from 'lucide-react'
+import { ShoppingCart, Edit, Trash2 } from 'lucide-react'
 
 export default function Purchases() {
   const [purchases, setPurchases] = useState<Purchase[]>([])
@@ -50,16 +51,7 @@ export default function Purchases() {
   return (
     <div className="w-full">
         <PageHeader title="المشتريات" subtitle="إدارة عمليات الشراء" icon={ShoppingCart} iconBg="from-cyan-500 to-cyan-600" buttonLabel="إضافة عملية شراء" onButtonClick={openAdd}>
-          <div className="relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="بحث..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-9 w-56 pr-9 pl-3 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+          <SearchInput value={search} onChange={setSearch} placeholder="بحث..." />
         </PageHeader>
 
         <Card className="shadow-md">
@@ -102,8 +94,8 @@ export default function Purchases() {
 
         <CustomModal isOpen={isOpen} onClose={onClose} title="إضافة عملية شراء" footer={
             <>
-              <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">إلغاء</button>
-              <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">إضافة</button>
+              <ModalCancelButton label="إلغاء" onClick={onClose} />
+              <ModalSubmitButton label="إضافة" onClick={handleSubmit} color="from-cyan-500 to-cyan-600" />
             </>
           }>
             <div className="flex flex-col gap-4">
