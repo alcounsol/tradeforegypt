@@ -4,11 +4,8 @@ import { useEffect, useState } from 'react'
 import { supabase, Purchase, InventoryItem, Supplier } from '@/lib/supabase'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
-import {
-  Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
-  Button, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  useDisclosure, Chip, Tooltip, Spinner, Select, SelectItem
-} from '@nextui-org/react'
+import CustomModal from '@/components/CustomModal'
+import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner, Select, SelectItem } from '@nextui-org/react'
 import { ShoppingCart, Search, Edit, Trash2 } from 'lucide-react'
 
 export default function Purchases() {
@@ -16,7 +13,9 @@ export default function Purchases() {
   const [items, setItems] = useState<InventoryItem[]>([])
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [loading, setLoading] = useState(true)
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const [isOpen, setIsOpen] = useState(false)
+  const onOpen = () => setIsOpen(true)
+  const onClose = () => setIsOpen(false)
   const [editItem, setEditItem] = useState<Purchase | null>(null)
   const [formData, setFormData] = useState({ item_id: 0, supplier_id: 0, quantity: 1, unit_cost: 0, total_cost: 0, purchase_date: new Date().toISOString().split('T')[0], invoice_number: '', notes: '' })
 
@@ -108,11 +107,13 @@ export default function Purchases() {
           </CardBody>
         </Card>
 
-        <Modal isOpen={isOpen} onClose={onClose} size="2xl" backdrop="blur" placement="auto">
-          <ModalContent>
-            <ModalHeader className="font-extrabold text-lg">إضافة عملية شراء</ModalHeader>
-            <ModalBody>
-              <div className="grid grid-cols-2 gap-4">
+        <CustomModal isOpen={isOpen} onClose={onClose} title="إضافة عملية شراء" footer={
+            <>
+              <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">إلغاء</button>
+              <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">إضافة</button>
+            </>
+          }>
+            <div className="grid grid-cols-2 gap-4">
                 <Select label="الصنف" isRequired selectedKeys={formData.item_id ? [String(formData.item_id)] : []} onSelectionChange={(keys) => { const v = Array.from(keys)[0]; setFormData({...formData, item_id: Number(v)}) }} variant="bordered">
                   {items.map(i => <SelectItem key={String(i.id)}>{i.name}</SelectItem>)}
                 </Select>
@@ -124,13 +125,7 @@ export default function Purchases() {
                 <Input label="رقم الفاتورة" value={formData.invoice_number} onValueChange={(v) => setFormData({...formData, invoice_number: v})} variant="bordered" />
                 <Input label="التاريخ" type="date" value={formData.purchase_date} onValueChange={(v) => setFormData({...formData, purchase_date: v})} variant="bordered" />
               </div>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" onPress={onClose} className="font-bold">إلغاء</Button>
-              <Button color="primary" variant="shadow" onPress={handleSubmit} className="font-bold">إضافة</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+          </CustomModal>
     </div>
   )
 }

@@ -4,18 +4,17 @@ import { useEffect, useState } from 'react'
 import { supabase, PayrollRecord, Employee } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
-import {
-  Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
-  Button, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  useDisclosure, Chip, Tooltip, Spinner, Select, SelectItem
-} from '@nextui-org/react'
+import CustomModal from '@/components/CustomModal'
+import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner, Select, SelectItem } from '@nextui-org/react'
 import { Wallet, Trash2 } from 'lucide-react'
 
 export default function Payroll() {
   const [records, setRecords] = useState<(PayrollRecord & { employee_name?: string })[]>([])
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const [isOpen, setIsOpen] = useState(false)
+  const onOpen = () => setIsOpen(true)
+  const onClose = () => setIsOpen(false)
   const [formData, setFormData] = useState({ employee_id: 0, period_month: new Date().getMonth() + 1, period_year: new Date().getFullYear(), base_salary: 0, bonus: 0, deductions: 0, net_paid: 0, paid_date: new Date().toISOString().split('T')[0] })
 
   useEffect(() => { fetchAll() }, [])
@@ -101,11 +100,13 @@ export default function Payroll() {
           </CardBody>
         </Card>
 
-        <Modal isOpen={isOpen} onClose={onClose} size="xl" backdrop="blur" placement="auto">
-          <ModalContent>
-            <ModalHeader className="font-extrabold">صرف راتب</ModalHeader>
-            <ModalBody className="gap-4">
-              <Select label="الموظف" isRequired selectedKeys={formData.employee_id ? [String(formData.employee_id)] : []} onSelectionChange={(keys) => selectEmployee(Number(Array.from(keys)[0]))} variant="bordered">
+        <CustomModal isOpen={isOpen} onClose={onClose} title="صرف راتب" footer={
+            <>
+              <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">إلغاء</button>
+              <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">صرف</button>
+            </>
+          }>
+                        <Select label="الموظف" isRequired selectedKeys={formData.employee_id ? [String(formData.employee_id)] : []} onSelectionChange={(keys) => selectEmployee(Number(Array.from(keys)[0]))} variant="bordered">
                 {employees.map(e => <SelectItem key={String(e.id)}>{e.name}</SelectItem>)}
               </Select>
               <div className="grid grid-cols-2 gap-4">
@@ -124,13 +125,7 @@ export default function Payroll() {
                 </CardBody>
               </Card>
               <Input label="تاريخ الصرف" type="date" value={formData.paid_date} onValueChange={(v) => setFormData({...formData, paid_date: v})} variant="bordered" />
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" onPress={onClose} className="font-bold">إلغاء</Button>
-              <Button color="primary" variant="shadow" onPress={handleSubmit} className="font-bold">صرف</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+          </CustomModal>
     </div>
   )
 }

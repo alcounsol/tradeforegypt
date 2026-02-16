@@ -4,18 +4,17 @@ import { useEffect, useState } from 'react'
 import { supabase, ServiceRecord } from '@/lib/supabase'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
-import {
-  Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
-  Button, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  useDisclosure, Chip, Tooltip, Spinner, Select, SelectItem, Textarea
-} from '@nextui-org/react'
+import CustomModal from '@/components/CustomModal'
+import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner, Select, SelectItem, Textarea } from '@nextui-org/react'
 import { Wrench, Search, Edit, Trash2 } from 'lucide-react'
 
 export default function Services() {
   const [services, setServices] = useState<ServiceRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const [isOpen, setIsOpen] = useState(false)
+  const onOpen = () => setIsOpen(true)
+  const onClose = () => setIsOpen(false)
   const [editItem, setEditItem] = useState<ServiceRecord | null>(null)
   const [formData, setFormData] = useState({ service_type: 'INSPECTION' as 'INSPECTION' | 'REPAIR', customer_name: '', customer_phone: '', device_type: '', device_brand: '', device_model: '', amount: 0, payment_method: 'CASH', notes: '', service_date: new Date().toISOString().split('T')[0] })
 
@@ -90,11 +89,13 @@ export default function Services() {
           </CardBody>
         </Card>
 
-        <Modal isOpen={isOpen} onClose={onClose} size="3xl" backdrop="blur" placement="auto">
-          <ModalContent>
-            <ModalHeader className="font-extrabold">{editItem ? 'تعديل خدمة' : 'تسجيل خدمة جديدة'}</ModalHeader>
-            <ModalBody className="gap-4">
-              <div className="flex gap-4">
+        <CustomModal isOpen={isOpen} onClose={onClose} title={editItem ? 'تعديل خدمة' : 'تسجيل خدمة جديدة'} footer={
+            <>
+              <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">إلغاء</button>
+              <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">{editItem ? 'تحديث' : 'تسجيل'}</button>
+            </>
+          }>
+                        <div className="flex gap-4">
                 <Button variant={formData.service_type === 'INSPECTION' ? 'shadow' : 'flat'} color={formData.service_type === 'INSPECTION' ? 'primary' : 'default'} onPress={() => setFormData({...formData, service_type: 'INSPECTION'})} className="flex-1 font-bold">كشف</Button>
                 <Button variant={formData.service_type === 'REPAIR' ? 'shadow' : 'flat'} color={formData.service_type === 'REPAIR' ? 'success' : 'default'} onPress={() => setFormData({...formData, service_type: 'REPAIR'})} className="flex-1 font-bold">صيانة</Button>
               </div>
@@ -117,13 +118,7 @@ export default function Services() {
                 <Input label="التاريخ" type="date" value={formData.service_date} onValueChange={(v) => setFormData({...formData, service_date: v})} variant="bordered" />
               </div>
               <Textarea label="ملاحظات" value={formData.notes} onValueChange={(v) => setFormData({...formData, notes: v})} variant="bordered" />
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" onPress={onClose} className="font-bold">إلغاء</Button>
-              <Button color="primary" variant="shadow" onPress={handleSubmit} className="font-bold">{editItem ? 'تحديث' : 'تسجيل'}</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+          </CustomModal>
     </div>
   )
 }

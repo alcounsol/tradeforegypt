@@ -4,18 +4,17 @@ import { useEffect, useState } from 'react'
 import { supabase, InventoryItem } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
-import {
-  Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
-  Button, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  useDisclosure, Chip, Tooltip, Spinner
-} from '@nextui-org/react'
+import CustomModal from '@/components/CustomModal'
+import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner } from '@nextui-org/react'
 import { Package, Search, Edit, Trash2 } from 'lucide-react'
 
 export default function Inventory() {
   const [items, setItems] = useState<InventoryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const [isOpen, setIsOpen] = useState(false)
+  const onOpen = () => setIsOpen(true)
+  const onClose = () => setIsOpen(false)
   const [editItem, setEditItem] = useState<InventoryItem | null>(null)
   const [formData, setFormData] = useState({ name: '', sku: '', category: '', unit: 'piece', current_stock: 0, min_stock_level: 5, cost_price: 0, sell_price: 0 })
 
@@ -106,11 +105,13 @@ export default function Inventory() {
           </CardBody>
         </Card>
 
-        <Modal isOpen={isOpen} onClose={onClose} size="2xl" backdrop="blur" placement="auto">
-          <ModalContent>
-            <ModalHeader className="font-extrabold text-lg">{editItem ? 'تعديل صنف' : 'إضافة صنف جديد'}</ModalHeader>
-            <ModalBody>
-              <div className="grid grid-cols-2 gap-4">
+        <CustomModal isOpen={isOpen} onClose={onClose} title={editItem ? 'تعديل صنف' : 'إضافة صنف جديد'} footer={
+            <>
+              <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">إلغاء</button>
+              <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">{editItem ? 'تحديث' : 'إضافة'}</button>
+            </>
+          }>
+            <div className="grid grid-cols-2 gap-4">
                 <Input label="اسم الصنف" isRequired value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})} variant="bordered" />
                 <Input label="رمز الصنف (SKU)" value={formData.sku} onValueChange={(v) => setFormData({...formData, sku: v})} variant="bordered" />
                 <Input label="الفئة" value={formData.category} onValueChange={(v) => setFormData({...formData, category: v})} variant="bordered" />
@@ -120,13 +121,7 @@ export default function Inventory() {
                 <Input label="سعر التكلفة" type="number" value={String(formData.cost_price)} onValueChange={(v) => setFormData({...formData, cost_price: parseFloat(v) || 0})} variant="bordered" />
                 <Input label="سعر البيع" type="number" value={String(formData.sell_price)} onValueChange={(v) => setFormData({...formData, sell_price: parseFloat(v) || 0})} variant="bordered" />
               </div>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" onPress={onClose} className="font-bold">إلغاء</Button>
-              <Button color="primary" variant="shadow" onPress={handleSubmit} className="font-bold">{editItem ? 'تحديث' : 'إضافة'}</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+          </CustomModal>
     </div>
   )
 }

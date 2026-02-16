@@ -4,16 +4,16 @@ import { useEffect, useState } from 'react'
 import { supabase, Employee } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
-import {
-  Card, CardBody, Button, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  useDisclosure, Chip, Tooltip, Spinner, Switch
-} from '@nextui-org/react'
+import CustomModal from '@/components/CustomModal'
+import { Card, CardBody, Button, Input, Chip, Tooltip, Spinner, Switch } from '@nextui-org/react'
 import { Users, Edit, Trash2, Phone, Briefcase } from 'lucide-react'
 
 export default function Employees() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const [isOpen, setIsOpen] = useState(false)
+  const onOpen = () => setIsOpen(true)
+  const onClose = () => setIsOpen(false)
   const [editItem, setEditItem] = useState<Employee | null>(null)
   const [formData, setFormData] = useState({ name: '', job_title: '', phone: '', base_salary: 0, is_active: true })
 
@@ -80,22 +80,18 @@ export default function Employees() {
           </div>
         )}
 
-        <Modal isOpen={isOpen} onClose={onClose} size="xl" backdrop="blur" placement="auto">
-          <ModalContent>
-            <ModalHeader className="font-extrabold">{editItem ? 'تعديل موظف' : 'إضافة موظف جديد'}</ModalHeader>
-            <ModalBody className="gap-4">
-              <Input label="الاسم" isRequired value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})} variant="bordered" />
+        <CustomModal isOpen={isOpen} onClose={onClose} title={editItem ? 'تعديل موظف' : 'إضافة موظف جديد'} footer={
+            <>
+              <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">إلغاء</button>
+              <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">{editItem ? 'تحديث' : 'إضافة'}</button>
+            </>
+          }>
+                        <Input label="الاسم" isRequired value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})} variant="bordered" />
               <Input label="الوظيفة" value={formData.job_title} onValueChange={(v) => setFormData({...formData, job_title: v})} variant="bordered" />
               <Input label="رقم الهاتف" value={formData.phone} onValueChange={(v) => setFormData({...formData, phone: v})} variant="bordered" />
               <Input label="الراتب الأساسي" type="number" value={String(formData.base_salary)} onValueChange={(v) => setFormData({...formData, base_salary: parseFloat(v) || 0})} variant="bordered" />
               <Switch isSelected={formData.is_active} onValueChange={(v) => setFormData({...formData, is_active: v})} className="font-semibold">موظف نشط</Switch>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" onPress={onClose} className="font-bold">إلغاء</Button>
-              <Button color="primary" variant="shadow" onPress={handleSubmit} className="font-bold">{editItem ? 'تحديث' : 'إضافة'}</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+          </CustomModal>
     </div>
   )
 }

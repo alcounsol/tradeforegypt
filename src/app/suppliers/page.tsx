@@ -3,17 +3,17 @@
 import { useEffect, useState } from 'react'
 import { supabase, Supplier } from '@/lib/supabase'
 import PageHeader from '@/components/PageHeader'
-import {
-  Card, CardBody, Button, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  useDisclosure, Tooltip, Spinner
-} from '@nextui-org/react'
+import CustomModal from '@/components/CustomModal'
+import { Card, CardBody, Button, Input, Tooltip, Spinner } from '@nextui-org/react'
 import { Truck, Search, Edit, Trash2, Phone, Mail, MapPin, User } from 'lucide-react'
 
 export default function Suppliers() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const [isOpen, setIsOpen] = useState(false)
+  const onOpen = () => setIsOpen(true)
+  const onClose = () => setIsOpen(false)
   const [editItem, setEditItem] = useState<Supplier | null>(null)
   const [formData, setFormData] = useState({ name: '', contact_person: '', phone: '', email: '', address: '', notes: '' })
 
@@ -81,24 +81,20 @@ export default function Suppliers() {
           </div>
         )}
 
-        <Modal isOpen={isOpen} onClose={onClose} size="xl" backdrop="blur" placement="auto">
-          <ModalContent>
-            <ModalHeader className="font-extrabold">{editItem ? 'تعديل مورد' : 'إضافة مورد جديد'}</ModalHeader>
-            <ModalBody className="gap-4">
-              <Input label="اسم الشركة/المورد" isRequired value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})} variant="bordered" />
+        <CustomModal isOpen={isOpen} onClose={onClose} title={editItem ? 'تعديل مورد' : 'إضافة مورد جديد'} footer={
+            <>
+              <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">إلغاء</button>
+              <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">{editItem ? 'تحديث' : 'إضافة'}</button>
+            </>
+          }>
+                        <Input label="اسم الشركة/المورد" isRequired value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})} variant="bordered" />
               <Input label="الشخص المسؤول" value={formData.contact_person} onValueChange={(v) => setFormData({...formData, contact_person: v})} variant="bordered" />
               <div className="grid grid-cols-2 gap-4">
                 <Input label="رقم الهاتف" value={formData.phone} onValueChange={(v) => setFormData({...formData, phone: v})} variant="bordered" />
                 <Input label="البريد الإلكتروني" value={formData.email} onValueChange={(v) => setFormData({...formData, email: v})} variant="bordered" />
               </div>
               <Input label="العنوان" value={formData.address} onValueChange={(v) => setFormData({...formData, address: v})} variant="bordered" />
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" onPress={onClose} className="font-bold">إلغاء</Button>
-              <Button color="primary" variant="shadow" onPress={handleSubmit} className="font-bold">{editItem ? 'تحديث' : 'إضافة'}</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+          </CustomModal>
     </div>
   )
 }

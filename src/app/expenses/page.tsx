@@ -4,11 +4,8 @@ import { useEffect, useState } from 'react'
 import { supabase, Expense } from '@/lib/supabase'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
-import {
-  Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
-  Button, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  useDisclosure, Chip, Tooltip, Spinner, Select, SelectItem, Textarea
-} from '@nextui-org/react'
+import CustomModal from '@/components/CustomModal'
+import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner, Select, SelectItem, Textarea } from '@nextui-org/react'
 import { Receipt, Edit, Trash2 } from 'lucide-react'
 
 const categories = ['إيجار', 'كهرباء', 'مياه', 'إنترنت', 'صيانة', 'نقل', 'مستلزمات', 'أخرى']
@@ -16,7 +13,9 @@ const categories = ['إيجار', 'كهرباء', 'مياه', 'إنترنت', '�
 export default function Expenses() {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const [isOpen, setIsOpen] = useState(false)
+  const onOpen = () => setIsOpen(true)
+  const onClose = () => setIsOpen(false)
   const [editItem, setEditItem] = useState<Expense | null>(null)
   const [formData, setFormData] = useState({ expense_type: 'BILL' as 'BILL' | 'PETTY', category: '', amount: 0, description: '', expense_date: new Date().toISOString().split('T')[0] })
 
@@ -84,11 +83,13 @@ export default function Expenses() {
           </CardBody>
         </Card>
 
-        <Modal isOpen={isOpen} onClose={onClose} size="xl" backdrop="blur" placement="auto">
-          <ModalContent>
-            <ModalHeader className="font-extrabold">{editItem ? 'تعديل مصروف' : 'إضافة مصروف جديد'}</ModalHeader>
-            <ModalBody className="gap-4">
-              <div className="flex gap-4">
+        <CustomModal isOpen={isOpen} onClose={onClose} title={editItem ? 'تعديل مصروف' : 'إضافة مصروف جديد'} footer={
+            <>
+              <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">إلغاء</button>
+              <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">{editItem ? 'تحديث' : 'إضافة'}</button>
+            </>
+          }>
+                        <div className="flex gap-4">
                 <Button variant={formData.expense_type === 'BILL' ? 'shadow' : 'flat'} color={formData.expense_type === 'BILL' ? 'danger' : 'default'} onPress={() => setFormData({...formData, expense_type: 'BILL'})} className="flex-1 font-bold">فاتورة</Button>
                 <Button variant={formData.expense_type === 'PETTY' ? 'shadow' : 'flat'} color={formData.expense_type === 'PETTY' ? 'warning' : 'default'} onPress={() => setFormData({...formData, expense_type: 'PETTY'})} className="flex-1 font-bold">نثرية</Button>
               </div>
@@ -100,13 +101,7 @@ export default function Expenses() {
                 <Input label="التاريخ" type="date" value={formData.expense_date} onValueChange={(v) => setFormData({...formData, expense_date: v})} variant="bordered" />
               </div>
               <Textarea label="الوصف" value={formData.description} onValueChange={(v) => setFormData({...formData, description: v})} variant="bordered" />
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" onPress={onClose} className="font-bold">إلغاء</Button>
-              <Button color="primary" variant="shadow" onPress={handleSubmit} className="font-bold">{editItem ? 'تحديث' : 'إضافة'}</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+          </CustomModal>
     </div>
   )
 }
