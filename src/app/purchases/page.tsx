@@ -5,6 +5,7 @@ import { supabase, Purchase, InventoryItem, Supplier } from '@/lib/supabase'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
+import FormInput, { FormTextarea, FormSelect } from '@/components/FormInput'
 import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner, Select, SelectItem } from '@nextui-org/react'
 import { ShoppingCart, Search, Edit, Trash2 } from 'lucide-react'
 
@@ -114,16 +115,16 @@ export default function Purchases() {
             </>
           }>
             <div className="grid grid-cols-2 gap-4">
-                <Select label="الصنف" isRequired selectedKeys={formData.item_id ? [String(formData.item_id)] : []} onSelectionChange={(keys) => { const v = Array.from(keys)[0]; setFormData({...formData, item_id: Number(v)}) }} variant="bordered">
+                <Select label="الصنف" isRequired selectedKeys={formData.item_id ? [String(formData.item_id)] : []} onSelectionChange={(keys) => { const v = Array.from(keys)[0]; setFormData({...formData, item_id: Number(v)}) }} variant="bordered" labelPlacement="outside">
                   {items.map(i => <SelectItem key={String(i.id)}>{i.name}</SelectItem>)}
                 </Select>
-                <Select label="المورد" selectedKeys={formData.supplier_id ? [String(formData.supplier_id)] : []} onSelectionChange={(keys) => { const v = Array.from(keys)[0]; setFormData({...formData, supplier_id: Number(v)}) }} variant="bordered">
+                <Select label="المورد" selectedKeys={formData.supplier_id ? [String(formData.supplier_id)] : []} onSelectionChange={(keys) => { const v = Array.from(keys)[0]; setFormData({...formData, supplier_id: Number(v)}) }} variant="bordered" labelPlacement="outside">
                   {suppliers.map(s => <SelectItem key={String(s.id)}>{s.name}</SelectItem>)}
                 </Select>
-                <Input label="الكمية" type="number" isRequired value={String(formData.quantity)} onValueChange={(v) => setFormData({...formData, quantity: parseInt(v) || 0})} variant="bordered" />
-                <Input label="سعر الوحدة" type="number" isRequired value={String(formData.unit_cost)} onValueChange={(v) => setFormData({...formData, unit_cost: parseFloat(v) || 0})} variant="bordered" />
-                <Input label="رقم الفاتورة" value={formData.invoice_number} onValueChange={(v) => setFormData({...formData, invoice_number: v})} variant="bordered" />
-                <Input label="التاريخ" type="date" value={formData.purchase_date} onValueChange={(v) => setFormData({...formData, purchase_date: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="الكمية" type="number" isRequired value={String(formData.quantity)} onValueChange={(v) => setFormData({...formData, quantity: parseInt(v) || 0})} variant="bordered" />
+                <Input labelPlacement="outside" label="سعر الوحدة" type="number" isRequired value={String(formData.unit_cost)} onValueChange={(v) => setFormData({...formData, unit_cost: parseFloat(v) || 0})} variant="bordered" />
+                <Input labelPlacement="outside" label="رقم الفاتورة" value={formData.invoice_number} onValueChange={(v) => setFormData({...formData, invoice_number: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="التاريخ" type="date" value={formData.purchase_date} onValueChange={(v) => setFormData({...formData, purchase_date: v})} variant="bordered" />
               </div>
           </CustomModal>
     </div>

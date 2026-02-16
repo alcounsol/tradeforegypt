@@ -5,6 +5,7 @@ import { supabase, PayrollRecord, Employee } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
+import FormInput, { FormTextarea, FormSelect } from '@/components/FormInput'
 import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner, Select, SelectItem } from '@nextui-org/react'
 import { Wallet, Trash2 } from 'lucide-react'
 
@@ -106,17 +107,17 @@ export default function Payroll() {
               <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">صرف</button>
             </>
           }>
-                        <Select label="الموظف" isRequired selectedKeys={formData.employee_id ? [String(formData.employee_id)] : []} onSelectionChange={(keys) => selectEmployee(Number(Array.from(keys)[0]))} variant="bordered">
+                        <Select label="الموظف" isRequired selectedKeys={formData.employee_id ? [String(formData.employee_id)] : []} onSelectionChange={(keys) => selectEmployee(Number(Array.from(keys)[0]))} variant="bordered" labelPlacement="outside">
                 {employees.map(e => <SelectItem key={String(e.id)}>{e.name}</SelectItem>)}
               </Select>
               <div className="grid grid-cols-2 gap-4">
-                <Input label="الشهر" type="number" value={String(formData.period_month)} onValueChange={(v) => setFormData({...formData, period_month: parseInt(v) || 1})} variant="bordered" />
-                <Input label="السنة" type="number" value={String(formData.period_year)} onValueChange={(v) => setFormData({...formData, period_year: parseInt(v) || 2026})} variant="bordered" />
+                <Input labelPlacement="outside" label="الشهر" type="number" value={String(formData.period_month)} onValueChange={(v) => setFormData({...formData, period_month: parseInt(v) || 1})} variant="bordered" />
+                <Input labelPlacement="outside" label="السنة" type="number" value={String(formData.period_year)} onValueChange={(v) => setFormData({...formData, period_year: parseInt(v) || 2026})} variant="bordered" />
               </div>
-              <Input label="الراتب الأساسي" type="number" value={String(formData.base_salary)} onValueChange={(v) => updateCalc('base_salary', parseFloat(v) || 0)} variant="bordered" />
+              <FormInput label="الراتب الأساسي" type="number" value={String(formData.base_salary)} onChange={(v) => updateCalc('base_salary', parseFloat(v) || 0)} />
               <div className="grid grid-cols-2 gap-4">
-                <Input label="المكافآت" type="number" value={String(formData.bonus)} onValueChange={(v) => updateCalc('bonus', parseFloat(v) || 0)} variant="bordered" />
-                <Input label="الخصومات" type="number" value={String(formData.deductions)} onValueChange={(v) => updateCalc('deductions', parseFloat(v) || 0)} variant="bordered" />
+                <FormInput label="المكافآت" type="number" value={String(formData.bonus)} onChange={(v) => updateCalc('bonus', parseFloat(v) || 0)} />
+                <FormInput label="الخصومات" type="number" value={String(formData.deductions)} onChange={(v) => updateCalc('deductions', parseFloat(v) || 0)} />
               </div>
               <Card className="bg-gradient-to-r from-violet-50 to-purple-50 border-none">
                 <CardBody className="flex flex-row items-center justify-between p-4">
@@ -124,7 +125,7 @@ export default function Payroll() {
                   <span className="text-2xl font-extrabold text-violet-600">{formatCurrency(formData.net_paid)}</span>
                 </CardBody>
               </Card>
-              <Input label="تاريخ الصرف" type="date" value={formData.paid_date} onValueChange={(v) => setFormData({...formData, paid_date: v})} variant="bordered" />
+              <Input labelPlacement="outside" label="تاريخ الصرف" type="date" value={formData.paid_date} onValueChange={(v) => setFormData({...formData, paid_date: v})} variant="bordered" />
           </CustomModal>
     </div>
   )

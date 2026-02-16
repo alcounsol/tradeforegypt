@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase, Supplier } from '@/lib/supabase'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
+import FormInput, { FormTextarea, FormSelect } from '@/components/FormInput'
 import { Card, CardBody, Button, Input, Tooltip, Spinner } from '@nextui-org/react'
 import { Truck, Search, Edit, Trash2, Phone, Mail, MapPin, User } from 'lucide-react'
 
@@ -87,13 +88,13 @@ export default function Suppliers() {
               <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">{editItem ? 'تحديث' : 'إضافة'}</button>
             </>
           }>
-                        <Input label="اسم الشركة/المورد" isRequired value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})} variant="bordered" />
-              <Input label="الشخص المسؤول" value={formData.contact_person} onValueChange={(v) => setFormData({...formData, contact_person: v})} variant="bordered" />
+                        <Input labelPlacement="outside" label="اسم الشركة/المورد" isRequired value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})} variant="bordered" />
+              <Input labelPlacement="outside" label="الشخص المسؤول" value={formData.contact_person} onValueChange={(v) => setFormData({...formData, contact_person: v})} variant="bordered" />
               <div className="grid grid-cols-2 gap-4">
-                <Input label="رقم الهاتف" value={formData.phone} onValueChange={(v) => setFormData({...formData, phone: v})} variant="bordered" />
-                <Input label="البريد الإلكتروني" value={formData.email} onValueChange={(v) => setFormData({...formData, email: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="رقم الهاتف" value={formData.phone} onValueChange={(v) => setFormData({...formData, phone: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="البريد الإلكتروني" value={formData.email} onValueChange={(v) => setFormData({...formData, email: v})} variant="bordered" />
               </div>
-              <Input label="العنوان" value={formData.address} onValueChange={(v) => setFormData({...formData, address: v})} variant="bordered" />
+              <Input labelPlacement="outside" label="العنوان" value={formData.address} onValueChange={(v) => setFormData({...formData, address: v})} variant="bordered" />
           </CustomModal>
     </div>
   )

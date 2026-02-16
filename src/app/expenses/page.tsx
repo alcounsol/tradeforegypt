@@ -5,6 +5,7 @@ import { supabase, Expense } from '@/lib/supabase'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
+import FormInput, { FormTextarea, FormSelect } from '@/components/FormInput'
 import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner, Select, SelectItem, Textarea } from '@nextui-org/react'
 import { Receipt, Edit, Trash2 } from 'lucide-react'
 
@@ -93,12 +94,12 @@ export default function Expenses() {
                 <Button variant={formData.expense_type === 'BILL' ? 'shadow' : 'flat'} color={formData.expense_type === 'BILL' ? 'danger' : 'default'} onPress={() => setFormData({...formData, expense_type: 'BILL'})} className="flex-1 font-bold">فاتورة</Button>
                 <Button variant={formData.expense_type === 'PETTY' ? 'shadow' : 'flat'} color={formData.expense_type === 'PETTY' ? 'warning' : 'default'} onPress={() => setFormData({...formData, expense_type: 'PETTY'})} className="flex-1 font-bold">نثرية</Button>
               </div>
-              <Select label="الفئة" isRequired selectedKeys={formData.category ? [formData.category] : []} onSelectionChange={(keys) => setFormData({...formData, category: Array.from(keys)[0] as string})} variant="bordered">
+              <Select label="الفئة" isRequired selectedKeys={formData.category ? [formData.category] : []} onSelectionChange={(keys) => setFormData({...formData, category: Array.from(keys)[0] as string})} variant="bordered" labelPlacement="outside">
                 {categories.map(c => <SelectItem key={c}>{c}</SelectItem>)}
               </Select>
               <div className="grid grid-cols-2 gap-4">
-                <Input label="المبلغ" type="number" isRequired value={String(formData.amount)} onValueChange={(v) => setFormData({...formData, amount: parseFloat(v) || 0})} variant="bordered" />
-                <Input label="التاريخ" type="date" value={formData.expense_date} onValueChange={(v) => setFormData({...formData, expense_date: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="المبلغ" type="number" isRequired value={String(formData.amount)} onValueChange={(v) => setFormData({...formData, amount: parseFloat(v) || 0})} variant="bordered" />
+                <Input labelPlacement="outside" label="التاريخ" type="date" value={formData.expense_date} onValueChange={(v) => setFormData({...formData, expense_date: v})} variant="bordered" />
               </div>
               <Textarea label="الوصف" value={formData.description} onValueChange={(v) => setFormData({...formData, description: v})} variant="bordered" />
           </CustomModal>

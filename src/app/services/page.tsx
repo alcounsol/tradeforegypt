@@ -5,6 +5,7 @@ import { supabase, ServiceRecord } from '@/lib/supabase'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
+import FormInput, { FormTextarea, FormSelect } from '@/components/FormInput'
 import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner, Select, SelectItem, Textarea } from '@nextui-org/react'
 import { Wrench, Search, Edit, Trash2 } from 'lucide-react'
 
@@ -100,22 +101,22 @@ export default function Services() {
                 <Button variant={formData.service_type === 'REPAIR' ? 'shadow' : 'flat'} color={formData.service_type === 'REPAIR' ? 'success' : 'default'} onPress={() => setFormData({...formData, service_type: 'REPAIR'})} className="flex-1 font-bold">صيانة</Button>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <Input label="اسم العميل" value={formData.customer_name} onValueChange={(v) => setFormData({...formData, customer_name: v})} variant="bordered" />
-                <Input label="رقم الهاتف" value={formData.customer_phone} onValueChange={(v) => setFormData({...formData, customer_phone: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="اسم العميل" value={formData.customer_name} onValueChange={(v) => setFormData({...formData, customer_name: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="رقم الهاتف" value={formData.customer_phone} onValueChange={(v) => setFormData({...formData, customer_phone: v})} variant="bordered" />
               </div>
               <div className="grid grid-cols-3 gap-4">
-                <Input label="نوع الجهاز" value={formData.device_type} onValueChange={(v) => setFormData({...formData, device_type: v})} variant="bordered" />
-                <Input label="الماركة" value={formData.device_brand} onValueChange={(v) => setFormData({...formData, device_brand: v})} variant="bordered" />
-                <Input label="الموديل" value={formData.device_model} onValueChange={(v) => setFormData({...formData, device_model: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="نوع الجهاز" value={formData.device_type} onValueChange={(v) => setFormData({...formData, device_type: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="الماركة" value={formData.device_brand} onValueChange={(v) => setFormData({...formData, device_brand: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="الموديل" value={formData.device_model} onValueChange={(v) => setFormData({...formData, device_model: v})} variant="bordered" />
               </div>
               <div className="grid grid-cols-3 gap-4">
-                <Input label="المبلغ" type="number" isRequired value={String(formData.amount)} onValueChange={(v) => setFormData({...formData, amount: parseFloat(v) || 0})} variant="bordered" />
-                <Select label="طريقة الدفع" selectedKeys={[formData.payment_method]} onSelectionChange={(keys) => setFormData({...formData, payment_method: Array.from(keys)[0] as string})} variant="bordered">
+                <Input labelPlacement="outside" label="المبلغ" type="number" isRequired value={String(formData.amount)} onValueChange={(v) => setFormData({...formData, amount: parseFloat(v) || 0})} variant="bordered" />
+                <Select label="طريقة الدفع" selectedKeys={[formData.payment_method]} onSelectionChange={(keys) => setFormData({...formData, payment_method: Array.from(keys)[0] as string})} variant="bordered" labelPlacement="outside">
                   <SelectItem key="CASH">نقداً</SelectItem>
                   <SelectItem key="CARD">بطاقة</SelectItem>
                   <SelectItem key="TRANSFER">تحويل</SelectItem>
                 </Select>
-                <Input label="التاريخ" type="date" value={formData.service_date} onValueChange={(v) => setFormData({...formData, service_date: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="التاريخ" type="date" value={formData.service_date} onValueChange={(v) => setFormData({...formData, service_date: v})} variant="bordered" />
               </div>
               <Textarea label="ملاحظات" value={formData.notes} onValueChange={(v) => setFormData({...formData, notes: v})} variant="bordered" />
           </CustomModal>

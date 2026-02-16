@@ -5,6 +5,7 @@ import { supabase, InventoryItem } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
+import FormInput, { FormTextarea, FormSelect } from '@/components/FormInput'
 import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner } from '@nextui-org/react'
 import { Package, Search, Edit, Trash2 } from 'lucide-react'
 
@@ -112,14 +113,14 @@ export default function Inventory() {
             </>
           }>
             <div className="grid grid-cols-2 gap-4">
-                <Input label="اسم الصنف" isRequired value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})} variant="bordered" />
-                <Input label="رمز الصنف (SKU)" value={formData.sku} onValueChange={(v) => setFormData({...formData, sku: v})} variant="bordered" />
-                <Input label="الفئة" value={formData.category} onValueChange={(v) => setFormData({...formData, category: v})} variant="bordered" />
-                <Input label="الوحدة" value={formData.unit} onValueChange={(v) => setFormData({...formData, unit: v})} variant="bordered" />
-                <Input label="الكمية الحالية" type="number" value={String(formData.current_stock)} onValueChange={(v) => setFormData({...formData, current_stock: parseInt(v) || 0})} variant="bordered" />
-                <Input label="الحد الأدنى" type="number" value={String(formData.min_stock_level)} onValueChange={(v) => setFormData({...formData, min_stock_level: parseInt(v) || 0})} variant="bordered" />
-                <Input label="سعر التكلفة" type="number" value={String(formData.cost_price)} onValueChange={(v) => setFormData({...formData, cost_price: parseFloat(v) || 0})} variant="bordered" />
-                <Input label="سعر البيع" type="number" value={String(formData.sell_price)} onValueChange={(v) => setFormData({...formData, sell_price: parseFloat(v) || 0})} variant="bordered" />
+                <Input labelPlacement="outside" label="اسم الصنف" isRequired value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="رمز الصنف (SKU)" value={formData.sku} onValueChange={(v) => setFormData({...formData, sku: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="الفئة" value={formData.category} onValueChange={(v) => setFormData({...formData, category: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="الوحدة" value={formData.unit} onValueChange={(v) => setFormData({...formData, unit: v})} variant="bordered" />
+                <Input labelPlacement="outside" label="الكمية الحالية" type="number" value={String(formData.current_stock)} onValueChange={(v) => setFormData({...formData, current_stock: parseInt(v) || 0})} variant="bordered" />
+                <Input labelPlacement="outside" label="الحد الأدنى" type="number" value={String(formData.min_stock_level)} onValueChange={(v) => setFormData({...formData, min_stock_level: parseInt(v) || 0})} variant="bordered" />
+                <Input labelPlacement="outside" label="سعر التكلفة" type="number" value={String(formData.cost_price)} onValueChange={(v) => setFormData({...formData, cost_price: parseFloat(v) || 0})} variant="bordered" />
+                <Input labelPlacement="outside" label="سعر البيع" type="number" value={String(formData.sell_price)} onValueChange={(v) => setFormData({...formData, sell_price: parseFloat(v) || 0})} variant="bordered" />
               </div>
           </CustomModal>
     </div>
