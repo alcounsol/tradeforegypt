@@ -1,100 +1,83 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase, Purchase, InventoryItem, Supplier } from '@/lib/supabase'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { supabase, Purchase, Supplier, InventoryItem } from '@/lib/supabase'
+import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
-import FormInput, { FormTextarea, FormSelect } from '@/components/FormInput'
-import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner, Select, SelectItem } from '@nextui-org/react'
+import FormInput, { FormSelect } from '@/components/FormInput'
+import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner } from '@nextui-org/react'
 import { ShoppingCart, Search, Edit, Trash2 } from 'lucide-react'
 
 export default function Purchases() {
-  const [purchases, setPurchases] = useState<(Purchase & { item_name?: string; supplier_name?: string })[]>([])
-  const [items, setItems] = useState<InventoryItem[]>([])
+  const [purchases, setPurchases] = useState<Purchase[]>([])
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const [items, setItems] = useState<InventoryItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const onOpen = () => setIsOpen(true)
   const onClose = () => setIsOpen(false)
   const [editItem, setEditItem] = useState<Purchase | null>(null)
-  const [formData, setFormData] = useState({ item_id: 0, supplier_id: 0, quantity: 1, unit_cost: 0, total_cost: 0, purchase_date: new Date().toISOString().split('T')[0], invoice_number: '', notes: '' })
+  const [formData, setFormData] = useState({ supplier_id: '', item_id: '', quantity: 1, unit_price: 0, purchase_date: new Date().toISOString().split('T')[0], notes: '' })
 
   useEffect(() => { fetchAll() }, [])
 
   async function fetchAll() {
     setLoading(true)
-    const [{ data: p }, { data: inv }, { data: sup }] = await Promise.all([
-      supabase.from('purchases').select('*').order('purchase_date', { ascending: false }),
-      supabase.from('inventory_items').select('*'),
+    const [{ data: p }, { data: s }, { data: i }] = await Promise.all([
+      supabase.from('purchases').select('*, suppliers(name), inventory_items(name)').order('purchase_date', { ascending: false }),
       supabase.from('suppliers').select('*'),
+      supabase.from('inventory_items').select('*'),
     ])
-    setItems(inv || [])
-    setSuppliers(sup || [])
-    setPurchases((p || []).map(pur => ({
-      ...pur,
-      item_name: inv?.find(i => i.id === pur.item_id)?.name || '-',
-      supplier_name: sup?.find(s => s.id === pur.supplier_id)?.name || '-',
-    })))
+    setPurchases(p || []); setSuppliers(s || []); setItems(i || [])
     setLoading(false)
   }
 
-  function openAdd() { setEditItem(null); setFormData({ item_id: 0, supplier_id: 0, quantity: 1, unit_cost: 0, total_cost: 0, purchase_date: new Date().toISOString().split('T')[0], invoice_number: '', notes: '' }); onOpen() }
+  function openAdd() { setEditItem(null); setFormData({ supplier_id: '', item_id: '', quantity: 1, unit_price: 0, purchase_date: new Date().toISOString().split('T')[0], notes: '' }); onOpen() }
 
   async function handleSubmit() {
-    const data = { ...formData, total_cost: formData.quantity * formData.unit_cost }
-    if (editItem) {
-      await supabase.from('purchases').update(data).eq('id', editItem.id)
-    } else {
-      await supabase.from('purchases').insert([data])
-      if (formData.item_id) {
-        const item = items.find(i => i.id === formData.item_id)
-        if (item) await supabase.from('inventory_items').update({ current_stock: item.current_stock + formData.quantity }).eq('id', formData.item_id)
-      }
-    }
+    const data = { ...formData, supplier_id: formData.supplier_id ? parseInt(formData.supplier_id) : null, item_id: formData.item_id ? parseInt(formData.item_id) : null, total_price: formData.quantity * formData.unit_price }
+    if (editItem) { await supabase.from('purchases').update(data).eq('id', editItem.id) }
+    else { await supabase.from('purchases').insert([data]) }
     onClose(); fetchAll()
   }
 
   async function handleDelete(id: number) {
-    if (confirm('هل أنت متأكد من حذف هذه العملية؟')) {
-      await supabase.from('purchases').delete().eq('id', id)
-      fetchAll()
-    }
+    if (confirm('هل أنت متأكد من حذف عملية الشراء؟')) { await supabase.from('purchases').delete().eq('id', id); fetchAll() }
   }
 
   return (
     <div className="w-full">
-        <PageHeader title="المشتريات" subtitle="إدارة عمليات الشراء والتوريد" icon={ShoppingCart} iconBg="from-cyan-500 to-cyan-600" buttonLabel="إضافة عملية شراء" onButtonClick={openAdd} />
+        <PageHeader title="المشتريات" subtitle="إدارة عمليات الشراء" icon={ShoppingCart} iconBg="from-cyan-500 to-cyan-600" buttonLabel="إضافة عملية شراء" onButtonClick={openAdd}>
+          <Input placeholder="بحث..." value={search} onValueChange={setSearch} startContent={<Search className="h-4 w-4 text-slate-400" />} className="w-64" variant="bordered" size="sm" />
+        </PageHeader>
 
         <Card className="shadow-md">
           <CardBody className="p-0">
-            {loading ? (
-              <div className="flex items-center justify-center h-48"><Spinner size="lg" label="جاري التحميل..." /></div>
-            ) : purchases.length === 0 ? (
+            {loading ? <div className="flex items-center justify-center h-48"><Spinner size="lg" /></div>
+            : purchases.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-                <ShoppingCart className="h-16 w-16 mb-4 opacity-20" />
-                <p className="font-bold text-lg">لا توجد عمليات شراء</p>
+                <ShoppingCart className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد مشتريات</p>
               </div>
             ) : (
-              <Table aria-label="جدول المشتريات" removeWrapper>
+              <Table aria-label="جدول المشتريات" removeWrapper className="min-w-full">
                 <TableHeader>
-                  <TableColumn className="text-right font-bold">الصنف</TableColumn>
                   <TableColumn className="text-right font-bold">المورد</TableColumn>
+                  <TableColumn className="text-right font-bold">الصنف</TableColumn>
                   <TableColumn className="text-right font-bold">الكمية</TableColumn>
-                  <TableColumn className="text-right font-bold">سعر الوحدة</TableColumn>
                   <TableColumn className="text-right font-bold">الإجمالي</TableColumn>
                   <TableColumn className="text-right font-bold">التاريخ</TableColumn>
                   <TableColumn className="text-center font-bold">الإجراءات</TableColumn>
                 </TableHeader>
                 <TableBody>
-                  {purchases.map(p => (
+                  {purchases.map((p: any) => (
                     <TableRow key={p.id} className="hover:bg-slate-50/50">
-                      <TableCell className="font-bold">{p.item_name}</TableCell>
-                      <TableCell>{p.supplier_name}</TableCell>
-                      <TableCell><Chip size="sm" variant="flat" color="primary" className="font-bold">{p.quantity}</Chip></TableCell>
-                      <TableCell className="font-semibold">{formatCurrency(p.unit_cost)}</TableCell>
-                      <TableCell className="font-bold text-cyan-600">{formatCurrency(p.total_cost)}</TableCell>
-                      <TableCell className="text-sm text-slate-500">{formatDate(p.purchase_date)}</TableCell>
+                      <TableCell className="font-bold">{p.suppliers?.name || '-'}</TableCell>
+                      <TableCell>{p.inventory_items?.name || '-'}</TableCell>
+                      <TableCell>{p.quantity}</TableCell>
+                      <TableCell className="font-extrabold text-cyan-600">{formatCurrency(p.total_price || 0)}</TableCell>
+                      <TableCell className="text-sm text-slate-500">{p.purchase_date}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
                           <Tooltip content="حذف" color="danger"><Button isIconOnly size="sm" variant="light" color="danger" onPress={() => handleDelete(p.id)}><Trash2 className="h-4 w-4" /></Button></Tooltip>
@@ -115,17 +98,15 @@ export default function Purchases() {
             </>
           }>
             <div className="flex flex-col gap-4">
-                <Select label="الصنف" isRequired selectedKeys={formData.item_id ? [String(formData.item_id)] : []} onSelectionChange={(keys) => { const v = Array.from(keys)[0]; setFormData({...formData, item_id: Number(v)}) }} variant="bordered" labelPlacement="outside">
-                  {items.map(i => <SelectItem key={String(i.id)}>{i.name}</SelectItem>)}
-                </Select>
-                <Select label="المورد" selectedKeys={formData.supplier_id ? [String(formData.supplier_id)] : []} onSelectionChange={(keys) => { const v = Array.from(keys)[0]; setFormData({...formData, supplier_id: Number(v)}) }} variant="bordered" labelPlacement="outside">
-                  {suppliers.map(s => <SelectItem key={String(s.id)}>{s.name}</SelectItem>)}
-                </Select>
-                <Input labelPlacement="outside" label="الكمية" type="number" isRequired value={String(formData.quantity)} onValueChange={(v) => setFormData({...formData, quantity: parseInt(v) || 0})} variant="bordered" />
-                <Input labelPlacement="outside" label="سعر الوحدة" type="number" isRequired value={String(formData.unit_cost)} onValueChange={(v) => setFormData({...formData, unit_cost: parseFloat(v) || 0})} variant="bordered" />
-                <Input labelPlacement="outside" label="رقم الفاتورة" value={formData.invoice_number} onValueChange={(v) => setFormData({...formData, invoice_number: v})} variant="bordered" />
-                <Input labelPlacement="outside" label="التاريخ" type="date" value={formData.purchase_date} onValueChange={(v) => setFormData({...formData, purchase_date: v})} variant="bordered" />
+              <FormSelect label="المورد" value={formData.supplier_id} onChange={(v) => setFormData({...formData, supplier_id: v})} options={suppliers.map(s => ({ value: String(s.id), label: s.name }))} placeholder="اختر المورد" />
+              <FormSelect label="الصنف" value={formData.item_id} onChange={(v) => setFormData({...formData, item_id: v})} options={items.map(i => ({ value: String(i.id), label: i.name }))} placeholder="اختر الصنف" />
+              <div className="grid grid-cols-2 gap-4">
+                <FormInput label="الكمية" type="number" value={formData.quantity} onChange={(v) => setFormData({...formData, quantity: parseInt(v) || 0})} />
+                <FormInput label="سعر الوحدة" type="number" value={formData.unit_price} onChange={(v) => setFormData({...formData, unit_price: parseFloat(v) || 0})} />
               </div>
+              <FormInput label="تاريخ الشراء" type="date" value={formData.purchase_date} onChange={(v) => setFormData({...formData, purchase_date: v})} />
+              <FormInput label="ملاحظات" value={formData.notes} onChange={(v) => setFormData({...formData, notes: v})} />
+            </div>
           </CustomModal>
     </div>
   )

@@ -5,8 +5,8 @@ import { supabase, Employee } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
-import FormInput, { FormTextarea, FormSelect } from '@/components/FormInput'
-import { Card, CardBody, Button, Input, Chip, Tooltip, Spinner, Switch } from '@nextui-org/react'
+import FormInput, { FormCheckbox } from '@/components/FormInput'
+import { Card, CardBody, Button, Chip, Tooltip, Spinner } from '@nextui-org/react'
 import { Users, Edit, Trash2, Phone, Briefcase } from 'lucide-react'
 
 export default function Employees() {
@@ -87,11 +87,13 @@ export default function Employees() {
               <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">{editItem ? 'تحديث' : 'إضافة'}</button>
             </>
           }>
-                        <Input labelPlacement="outside" label="الاسم" isRequired value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})} variant="bordered" />
-              <Input labelPlacement="outside" label="الوظيفة" value={formData.job_title} onValueChange={(v) => setFormData({...formData, job_title: v})} variant="bordered" />
-              <Input labelPlacement="outside" label="رقم الهاتف" value={formData.phone} onValueChange={(v) => setFormData({...formData, phone: v})} variant="bordered" />
-              <Input labelPlacement="outside" label="الراتب الأساسي" type="number" value={String(formData.base_salary)} onValueChange={(v) => setFormData({...formData, base_salary: parseFloat(v) || 0})} variant="bordered" />
-              <Switch isSelected={formData.is_active} onValueChange={(v) => setFormData({...formData, is_active: v})} className="font-semibold">موظف نشط</Switch>
+            <div className="flex flex-col gap-4">
+              <FormInput label="الاسم" value={formData.name} onChange={(v) => setFormData({...formData, name: v})} required />
+              <FormInput label="الوظيفة" value={formData.job_title} onChange={(v) => setFormData({...formData, job_title: v})} />
+              <FormInput label="رقم الهاتف" value={formData.phone} onChange={(v) => setFormData({...formData, phone: v})} type="tel" />
+              <FormInput label="الراتب الأساسي" type="number" value={formData.base_salary} onChange={(v) => setFormData({...formData, base_salary: parseFloat(v) || 0})} />
+              <FormCheckbox label="موظف نشط" checked={formData.is_active} onChange={(v) => setFormData({...formData, is_active: v})} />
+            </div>
           </CustomModal>
     </div>
   )

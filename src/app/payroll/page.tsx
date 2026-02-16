@@ -5,59 +5,49 @@ import { supabase, PayrollRecord, Employee } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
-import FormInput, { FormTextarea, FormSelect } from '@/components/FormInput'
-import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner, Select, SelectItem } from '@nextui-org/react'
-import { Wallet, Trash2 } from 'lucide-react'
+import FormInput, { FormSelect } from '@/components/FormInput'
+import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Chip, Tooltip, Spinner } from '@nextui-org/react'
+import { Wallet, Edit, Trash2 } from 'lucide-react'
 
 export default function Payroll() {
-  const [records, setRecords] = useState<(PayrollRecord & { employee_name?: string })[]>([])
+  const [records, setRecords] = useState<PayrollRecord[]>([])
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
   const onOpen = () => setIsOpen(true)
   const onClose = () => setIsOpen(false)
-  const [formData, setFormData] = useState({ employee_id: 0, period_month: new Date().getMonth() + 1, period_year: new Date().getFullYear(), base_salary: 0, bonus: 0, deductions: 0, net_paid: 0, paid_date: new Date().toISOString().split('T')[0] })
+  const [formData, setFormData] = useState({ employee_id: '', period_month: new Date().getMonth() + 1, period_year: new Date().getFullYear(), bonus: 0, deductions: 0, net_paid: 0 })
 
   useEffect(() => { fetchAll() }, [])
 
   async function fetchAll() {
     setLoading(true)
-    const [{ data: p }, { data: emp }] = await Promise.all([
-      supabase.from('payroll_records').select('*').order('period_year', { ascending: false }).order('period_month', { ascending: false }),
+    const [{ data: r }, { data: e }] = await Promise.all([
+      supabase.from('payroll_records').select('*, employees(name, base_salary)').order('period_year', { ascending: false }).order('period_month', { ascending: false }),
       supabase.from('employees').select('*').eq('is_active', true),
     ])
-    setEmployees(emp || [])
-    setRecords((p || []).map(r => ({ ...r, employee_name: emp?.find(e => e.id === r.employee_id)?.name || '-' })))
+    setRecords(r || []); setEmployees(e || [])
     setLoading(false)
   }
 
   function openAdd() {
-    setFormData({ employee_id: 0, period_month: new Date().getMonth() + 1, period_year: new Date().getFullYear(), base_salary: 0, bonus: 0, deductions: 0, net_paid: 0, paid_date: new Date().toISOString().split('T')[0] })
+    setFormData({ employee_id: '', period_month: new Date().getMonth() + 1, period_year: new Date().getFullYear(), bonus: 0, deductions: 0, net_paid: 0 })
     onOpen()
   }
 
-  function selectEmployee(id: number) {
-    const emp = employees.find(e => e.id === id)
-    const base = emp?.base_salary || 0
-    setFormData(prev => ({ ...prev, employee_id: id, base_salary: base, net_paid: base + prev.bonus - prev.deductions }))
-  }
-
-  function updateCalc(field: string, value: number) {
-    setFormData(prev => {
-      const updated = { ...prev, [field]: value }
-      updated.net_paid = updated.base_salary + updated.bonus - updated.deductions
-      return updated
-    })
-  }
-
   async function handleSubmit() {
-    await supabase.from('payroll_records').insert([formData])
+    const emp = employees.find(e => e.id === parseInt(formData.employee_id))
+    const baseSalary = emp?.base_salary || 0
+    const net = baseSalary + formData.bonus - formData.deductions
+    await supabase.from('payroll_records').insert([{ ...formData, employee_id: parseInt(formData.employee_id), net_paid: net }])
     onClose(); fetchAll()
   }
 
   async function handleDelete(id: number) {
     if (confirm('هل أنت متأكد من حذف هذا السجل؟')) { await supabase.from('payroll_records').delete().eq('id', id); fetchAll() }
   }
+
+  const months = Array.from({length: 12}, (_, i) => ({ value: String(i + 1), label: String(i + 1) }))
 
   return (
     <div className="w-full">
@@ -71,27 +61,27 @@ export default function Payroll() {
                 <Wallet className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد سجلات رواتب</p>
               </div>
             ) : (
-              <Table aria-label="جدول الرواتب" removeWrapper>
+              <Table aria-label="جدول الرواتب" removeWrapper className="min-w-full">
                 <TableHeader>
                   <TableColumn className="text-right font-bold">الموظف</TableColumn>
                   <TableColumn className="text-right font-bold">الفترة</TableColumn>
-                  <TableColumn className="text-right font-bold">الأساسي</TableColumn>
                   <TableColumn className="text-right font-bold">المكافآت</TableColumn>
                   <TableColumn className="text-right font-bold">الخصومات</TableColumn>
-                  <TableColumn className="text-right font-bold">الصافي</TableColumn>
+                  <TableColumn className="text-right font-bold">صافي المدفوع</TableColumn>
                   <TableColumn className="text-center font-bold">الإجراءات</TableColumn>
                 </TableHeader>
                 <TableBody>
-                  {records.map(r => (
+                  {records.map((r: any) => (
                     <TableRow key={r.id} className="hover:bg-slate-50/50">
-                      <TableCell className="font-bold">{r.employee_name}</TableCell>
-                      <TableCell><Chip size="sm" variant="flat" color="secondary" className="font-bold">{r.period_month}/{r.period_year}</Chip></TableCell>
-                      <TableCell className="font-semibold">{formatCurrency(r.base_salary)}</TableCell>
-                      <TableCell className="font-semibold text-emerald-600">{formatCurrency(r.bonus)}</TableCell>
-                      <TableCell className="font-semibold text-rose-600">{formatCurrency(r.deductions)}</TableCell>
-                      <TableCell className="font-extrabold text-violet-600">{formatCurrency(r.net_paid)}</TableCell>
+                      <TableCell className="font-bold">{r.employees?.name || '-'}</TableCell>
+                      <TableCell><Chip size="sm" variant="flat">{r.period_month}/{r.period_year}</Chip></TableCell>
+                      <TableCell className="text-emerald-600 font-semibold">{formatCurrency(r.bonus || 0)}</TableCell>
+                      <TableCell className="text-rose-600 font-semibold">{formatCurrency(r.deductions || 0)}</TableCell>
+                      <TableCell className="font-extrabold text-pink-600">{formatCurrency(r.net_paid || 0)}</TableCell>
                       <TableCell>
-                        <Tooltip content="حذف" color="danger"><Button isIconOnly size="sm" variant="light" color="danger" onPress={() => handleDelete(r.id)}><Trash2 className="h-4 w-4" /></Button></Tooltip>
+                        <div className="flex items-center justify-center gap-1">
+                          <Tooltip content="حذف" color="danger"><Button isIconOnly size="sm" variant="light" color="danger" onPress={() => handleDelete(r.id)}><Trash2 className="h-4 w-4" /></Button></Tooltip>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -107,25 +97,17 @@ export default function Payroll() {
               <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-colors">صرف</button>
             </>
           }>
-                        <Select label="الموظف" isRequired selectedKeys={formData.employee_id ? [String(formData.employee_id)] : []} onSelectionChange={(keys) => selectEmployee(Number(Array.from(keys)[0]))} variant="bordered" labelPlacement="outside">
-                {employees.map(e => <SelectItem key={String(e.id)}>{e.name}</SelectItem>)}
-              </Select>
-              <div className="flex flex-col gap-4">
-                <Input labelPlacement="outside" label="الشهر" type="number" value={String(formData.period_month)} onValueChange={(v) => setFormData({...formData, period_month: parseInt(v) || 1})} variant="bordered" />
-                <Input labelPlacement="outside" label="السنة" type="number" value={String(formData.period_year)} onValueChange={(v) => setFormData({...formData, period_year: parseInt(v) || 2026})} variant="bordered" />
+            <div className="flex flex-col gap-4">
+              <FormSelect label="الموظف" value={formData.employee_id} onChange={(v) => setFormData({...formData, employee_id: v})} options={employees.map(e => ({ value: String(e.id), label: e.name }))} placeholder="اختر الموظف" required />
+              <div className="grid grid-cols-2 gap-4">
+                <FormSelect label="الشهر" value={String(formData.period_month)} onChange={(v) => setFormData({...formData, period_month: parseInt(v)})} options={months} />
+                <FormInput label="السنة" type="number" value={formData.period_year} onChange={(v) => setFormData({...formData, period_year: parseInt(v) || 2026})} />
               </div>
-              <FormInput label="الراتب الأساسي" type="number" value={String(formData.base_salary)} onChange={(v) => updateCalc('base_salary', parseFloat(v) || 0)} />
-              <div className="flex flex-col gap-4">
-                <FormInput label="المكافآت" type="number" value={String(formData.bonus)} onChange={(v) => updateCalc('bonus', parseFloat(v) || 0)} />
-                <FormInput label="الخصومات" type="number" value={String(formData.deductions)} onChange={(v) => updateCalc('deductions', parseFloat(v) || 0)} />
+              <div className="grid grid-cols-2 gap-4">
+                <FormInput label="المكافآت" type="number" value={formData.bonus} onChange={(v) => setFormData({...formData, bonus: parseFloat(v) || 0})} />
+                <FormInput label="الخصومات" type="number" value={formData.deductions} onChange={(v) => setFormData({...formData, deductions: parseFloat(v) || 0})} />
               </div>
-              <Card className="bg-gradient-to-r from-violet-50 to-purple-50 border-none">
-                <CardBody className="flex flex-row items-center justify-between p-4">
-                  <span className="font-bold text-slate-700">صافي الراتب</span>
-                  <span className="text-2xl font-extrabold text-violet-600">{formatCurrency(formData.net_paid)}</span>
-                </CardBody>
-              </Card>
-              <Input labelPlacement="outside" label="تاريخ الصرف" type="date" value={formData.paid_date} onValueChange={(v) => setFormData({...formData, paid_date: v})} variant="bordered" />
+            </div>
           </CustomModal>
     </div>
   )

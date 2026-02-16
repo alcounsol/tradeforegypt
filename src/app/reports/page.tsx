@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import {
-  Card, CardBody, CardHeader, Button, Spinner, Chip, Divider, Select, SelectItem
+  Card, CardBody, CardHeader, Button, Spinner, Divider
 } from '@nextui-org/react'
 import { FileBarChart, Download, TrendingUp, TrendingDown, DollarSign } from 'lucide-react'
 
@@ -70,24 +70,36 @@ export default function Reports() {
     link.click()
   }
 
-  const months = [1,2,3,4,5,6,7,8,9,10,11,12]
-
   return (
     <div className="w-full">
         <PageHeader title="التقارير" subtitle={`تحليل مالي شامل لشهر ${selectedMonth}/${selectedYear}`} icon={FileBarChart} iconBg="from-indigo-500 to-indigo-600">
-          <Select size="sm" selectedKeys={[String(selectedMonth)]} onSelectionChange={(keys) => setSelectedMonth(Number(Array.from(keys)[0]))} className="w-24" variant="bordered" aria-label="الشهر">
-            {months.map(m => <SelectItem key={String(m)}>{String(m)}</SelectItem>)}
-          </Select>
-          <Select size="sm" selectedKeys={[String(selectedYear)]} onSelectionChange={(keys) => setSelectedYear(Number(Array.from(keys)[0]))} className="w-28" variant="bordered" aria-label="السنة">
-            {[2024,2025,2026].map(y => <SelectItem key={String(y)}>{String(y)}</SelectItem>)}
-          </Select>
-          <Button color="success" variant="shadow" size="sm" startContent={<Download className="h-4 w-4" />} onPress={exportCSV} className="font-bold">تصدير CSV</Button>
+          <div className="flex items-center gap-3">
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              className="h-9 px-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+            >
+              {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                <option key={m} value={m}>شهر {m}</option>
+              ))}
+            </select>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="h-9 px-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+            >
+              {[2024,2025,2026].map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+            <Button color="success" variant="shadow" size="sm" startContent={<Download className="h-4 w-4" />} onPress={exportCSV} className="font-bold">تصدير CSV</Button>
+          </div>
         </PageHeader>
 
         {loading ? <div className="flex items-center justify-center h-64"><Spinner size="lg" /></div> : (
           <>
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
               {[
                 { title: 'إجمالي الإيرادات', value: formatCurrency(report.totalRevenue), icon: TrendingUp, gradient: 'from-emerald-500 to-green-600', textColor: 'text-emerald-700' },
                 { title: 'إجمالي المصروفات', value: formatCurrency(report.totalExpenses), icon: TrendingDown, gradient: 'from-rose-500 to-pink-600', textColor: 'text-rose-700' },
@@ -168,16 +180,16 @@ export default function Reports() {
               <CardBody className="px-0">
                 <table className="w-full">
                   <tbody>
-                    <tr className="bg-emerald-50"><td className="px-6 py-3 font-bold">إجمالي الإيرادات</td><td className="px-6 py-3 text-left font-extrabold text-emerald-600">{formatCurrency(report.totalRevenue)}</td></tr>
-                    <tr><td className="px-6 py-2.5 pr-10 text-slate-500">إيرادات الكشف</td><td className="px-6 py-2.5 text-left">{formatCurrency(report.servicesByType.inspection)}</td></tr>
-                    <tr><td className="px-6 py-2.5 pr-10 text-slate-500">إيرادات الصيانة</td><td className="px-6 py-2.5 text-left">{formatCurrency(report.servicesByType.repair)}</td></tr>
-                    <tr className="bg-rose-50"><td className="px-6 py-3 font-bold">إجمالي المصروفات</td><td className="px-6 py-3 text-left font-extrabold text-rose-600">({formatCurrency(report.totalExpenses)})</td></tr>
+                    <tr className="bg-emerald-50"><td className="px-6 py-3 font-bold text-right">إجمالي الإيرادات</td><td className="px-6 py-3 text-left font-extrabold text-emerald-600">{formatCurrency(report.totalRevenue)}</td></tr>
+                    <tr><td className="px-6 py-2.5 pr-10 text-slate-500 text-right">إيرادات الكشف</td><td className="px-6 py-2.5 text-left">{formatCurrency(report.servicesByType.inspection)}</td></tr>
+                    <tr><td className="px-6 py-2.5 pr-10 text-slate-500 text-right">إيرادات الصيانة</td><td className="px-6 py-2.5 text-left">{formatCurrency(report.servicesByType.repair)}</td></tr>
+                    <tr className="bg-rose-50"><td className="px-6 py-3 font-bold text-right">إجمالي المصروفات</td><td className="px-6 py-3 text-left font-extrabold text-rose-600">({formatCurrency(report.totalExpenses)})</td></tr>
                     {report.expensesByCategory.slice(0, 5).map((exp, i) => (
-                      <tr key={i}><td className="px-6 py-2.5 pr-10 text-slate-500">{exp.category}</td><td className="px-6 py-2.5 text-left">{formatCurrency(exp.total)}</td></tr>
+                      <tr key={i}><td className="px-6 py-2.5 pr-10 text-slate-500 text-right">{exp.category}</td><td className="px-6 py-2.5 text-left">{formatCurrency(exp.total)}</td></tr>
                     ))}
-                    <tr><td className="px-6 py-2.5 pr-10 text-slate-500">الرواتب</td><td className="px-6 py-2.5 text-left">{formatCurrency(report.totalPayroll)}</td></tr>
+                    <tr><td className="px-6 py-2.5 pr-10 text-slate-500 text-right">الرواتب</td><td className="px-6 py-2.5 text-left">{formatCurrency(report.totalPayroll)}</td></tr>
                     <tr className={report.netProfit >= 0 ? 'bg-emerald-100' : 'bg-rose-100'}>
-                      <td className="px-6 py-4 font-extrabold text-base">صافي الربح / الخسارة</td>
+                      <td className="px-6 py-4 font-extrabold text-base text-right">صافي الربح / الخسارة</td>
                       <td className={`px-6 py-4 text-left font-extrabold text-xl ${report.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(report.netProfit)}</td>
                     </tr>
                   </tbody>
