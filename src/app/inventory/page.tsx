@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { supabase, InventoryItem } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
-import Sidebar from '@/components/Sidebar'
 import PageHeader from '@/components/PageHeader'
 import {
   Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
@@ -51,9 +50,7 @@ export default function Inventory() {
   }
 
   return (
-    <div className="flex min-h-screen" dir="rtl">
-      <Sidebar />
-      <main className="flex-1 mr-[250px] p-8">
+    <div className="w-full">
         <PageHeader title="المخزون" subtitle="إدارة قطع الغيار والأصناف" icon={Package} iconBg="from-emerald-500 to-emerald-600" buttonLabel="إضافة صنف" onButtonClick={openAdd}>
           <Input placeholder="بحث عن صنف..." value={search} onValueChange={setSearch} startContent={<Search className="h-4 w-4 text-slate-400" />} className="w-64" variant="bordered" size="sm" />
         </PageHeader>
@@ -130,7 +127,6 @@ export default function Inventory() {
             </ModalFooter>
           </ModalContent>
         </Modal>
-      </main>
     </div>
   )
 }

@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
-import Sidebar from '@/components/Sidebar'
 import { Card, CardBody, CardHeader, Chip, Button, Divider, Spinner } from '@nextui-org/react'
 import {
   TrendingUp, TrendingDown, DollarSign, AlertTriangle,
@@ -65,9 +64,7 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="flex min-h-screen" dir="rtl">
-      <Sidebar />
-      <main className="flex-1 mr-[250px] p-8">
+    <div className="w-full">
         {/* Welcome */}
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold text-slate-900">أهلاً بك، أدمن 👋</h1>
@@ -218,7 +215,6 @@ export default function Dashboard() {
             </div>
           </>
         )}
-      </main>
     </div>
   )
 }

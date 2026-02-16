@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
-import Sidebar from '@/components/Sidebar'
 import PageHeader from '@/components/PageHeader'
 import {
   Card, CardBody, CardHeader, Button, Spinner, Chip, Divider, Select, SelectItem
@@ -74,9 +73,7 @@ export default function Reports() {
   const months = [1,2,3,4,5,6,7,8,9,10,11,12]
 
   return (
-    <div className="flex min-h-screen" dir="rtl">
-      <Sidebar />
-      <main className="flex-1 mr-[250px] p-8">
+    <div className="w-full">
         <PageHeader title="التقارير" subtitle={`تحليل مالي شامل لشهر ${selectedMonth}/${selectedYear}`} icon={FileBarChart} iconBg="from-indigo-500 to-indigo-600">
           <Select size="sm" selectedKeys={[String(selectedMonth)]} onSelectionChange={(keys) => setSelectedMonth(Number(Array.from(keys)[0]))} className="w-24" variant="bordered" aria-label="الشهر">
             {months.map(m => <SelectItem key={String(m)}>{String(m)}</SelectItem>)}
@@ -189,7 +186,6 @@ export default function Reports() {
             </Card>
           </>
         )}
-      </main>
     </div>
   )
 }

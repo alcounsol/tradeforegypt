@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { supabase, Employee } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
-import Sidebar from '@/components/Sidebar'
 import PageHeader from '@/components/PageHeader'
 import {
   Card, CardBody, Button, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
@@ -41,9 +40,7 @@ export default function Employees() {
   }
 
   return (
-    <div className="flex min-h-screen" dir="rtl">
-      <Sidebar />
-      <main className="flex-1 mr-[250px] p-8">
+    <div className="w-full">
         <PageHeader title="الموظفين" subtitle="إدارة بيانات الموظفين" icon={Users} iconBg="from-violet-500 to-violet-600" buttonLabel="إضافة موظف" onButtonClick={openAdd} />
 
         {loading ? <div className="flex items-center justify-center h-48"><Spinner size="lg" /></div>
@@ -99,7 +96,6 @@ export default function Employees() {
             </ModalFooter>
           </ModalContent>
         </Modal>
-      </main>
     </div>
   )
 }

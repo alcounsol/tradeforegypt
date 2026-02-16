@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { supabase, Expense } from '@/lib/supabase'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import Sidebar from '@/components/Sidebar'
 import PageHeader from '@/components/PageHeader'
 import {
   Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
@@ -44,9 +43,7 @@ export default function Expenses() {
   }
 
   return (
-    <div className="flex min-h-screen" dir="rtl">
-      <Sidebar />
-      <main className="flex-1 mr-[250px] p-8">
+    <div className="w-full">
         <PageHeader title="المصروفات" subtitle="إدارة وتتبع المصروفات" icon={Receipt} iconBg="from-rose-500 to-rose-600" buttonLabel="إضافة مصروف" onButtonClick={openAdd} />
         <Card className="shadow-md">
           <CardBody className="p-0">
@@ -110,7 +107,6 @@ export default function Expenses() {
             </ModalFooter>
           </ModalContent>
         </Modal>
-      </main>
     </div>
   )
 }

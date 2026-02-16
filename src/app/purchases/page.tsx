@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { supabase, Purchase, InventoryItem, Supplier } from '@/lib/supabase'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import Sidebar from '@/components/Sidebar'
 import PageHeader from '@/components/PageHeader'
 import {
   Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
@@ -64,9 +63,7 @@ export default function Purchases() {
   }
 
   return (
-    <div className="flex min-h-screen" dir="rtl">
-      <Sidebar />
-      <main className="flex-1 mr-[250px] p-8">
+    <div className="w-full">
         <PageHeader title="المشتريات" subtitle="إدارة عمليات الشراء والتوريد" icon={ShoppingCart} iconBg="from-cyan-500 to-cyan-600" buttonLabel="إضافة عملية شراء" onButtonClick={openAdd} />
 
         <Card className="shadow-md">
@@ -134,7 +131,6 @@ export default function Purchases() {
             </ModalFooter>
           </ModalContent>
         </Modal>
-      </main>
     </div>
   )
 }

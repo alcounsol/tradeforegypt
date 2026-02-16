@@ -12,37 +12,39 @@
 
 body {
   font-family: 'Cairo', sans-serif;
-  background: linear-gradient(135deg, #f0f4ff 0%, #f5f3ff 50%, #fdf2f8 100%);
   color: #1e293b;
   min-height: 100vh;
+  overflow: hidden;
 }
 
-::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
-/* Fix NextUI Modal positioning - React Aria calculates wrong inset in some cases */
-[data-slot="wrapper"] {
+/* Fix NextUI Modal/Overlay positioning in RTL */
+[data-overlay-container="true"] {
+  position: fixed !important;
   inset: 0 !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
+  z-index: 9999 !important;
+}
+
+[data-slot="wrapper"] {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   width: 100vw !important;
   height: 100vh !important;
   height: 100dvh !important;
-  align-items: center !important;
 }
 
-/* Fix backdrop positioning */
-[data-slot="backdrop"],
-.backdrop-blur-md.backdrop-saturate-150 {
+[data-slot="backdrop"] {
+  position: fixed !important;
   inset: 0 !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
+  z-index: 9998 !important;
   width: 100vw !important;
   height: 100vh !important;
   height: 100dvh !important;

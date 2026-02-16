@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { supabase, Customer } from '@/lib/supabase'
-import Sidebar from '@/components/Sidebar'
 import PageHeader from '@/components/PageHeader'
 import {
   Card, CardBody, Button, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
@@ -43,9 +42,7 @@ export default function Customers() {
   }
 
   return (
-    <div className="flex min-h-screen" dir="rtl">
-      <Sidebar />
-      <main className="flex-1 mr-[250px] p-8">
+    <div className="w-full">
         <PageHeader title="العملاء" subtitle="إدارة بيانات العملاء" icon={UserCircle} iconBg="from-teal-500 to-teal-600" buttonLabel="إضافة عميل" onButtonClick={openAdd}>
           <Input placeholder="بحث..." value={search} onValueChange={setSearch} startContent={<Search className="h-4 w-4 text-slate-400" />} className="w-64" variant="bordered" size="sm" />
         </PageHeader>
@@ -101,7 +98,6 @@ export default function Customers() {
             </ModalFooter>
           </ModalContent>
         </Modal>
-      </main>
     </div>
   )
 }
