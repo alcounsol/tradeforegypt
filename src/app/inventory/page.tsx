@@ -6,7 +6,7 @@ import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
 import FormInput from '@/components/FormInput'
-import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Input, Chip, Tooltip, Spinner } from '@nextui-org/react'
+import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button,  Chip, Tooltip, Spinner } from '@nextui-org/react'
 import { Package, Search, Edit, Trash2 } from 'lucide-react'
 
 export default function Inventory() {
@@ -52,7 +52,16 @@ export default function Inventory() {
   return (
     <div className="w-full">
         <PageHeader title="المخزون" subtitle="إدارة قطع الغيار والأصناف" icon={Package} iconBg="from-emerald-500 to-emerald-600" buttonLabel="إضافة صنف" onButtonClick={openAdd}>
-          <Input placeholder="بحث عن صنف..." value={search} onValueChange={setSearch} startContent={<Search className="h-4 w-4 text-slate-400" />} className="w-64" variant="bordered" size="sm" />
+          <div className="relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="بحث عن صنف..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-9 w-56 pr-9 pl-3 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
         </PageHeader>
 
         <Card className="shadow-md">

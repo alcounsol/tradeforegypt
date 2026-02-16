@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import {
-  Card, CardBody, CardHeader, Button, Spinner, Divider
+  Card, CardBody, CardHeader, Spinner, Divider
 } from '@nextui-org/react'
 import { FileBarChart, Download, TrendingUp, TrendingDown, DollarSign } from 'lucide-react'
 
@@ -72,132 +72,138 @@ export default function Reports() {
 
   return (
     <div className="w-full">
-        <PageHeader title="التقارير" subtitle={`تحليل مالي شامل لشهر ${selectedMonth}/${selectedYear}`} icon={FileBarChart} iconBg="from-indigo-500 to-indigo-600">
-          <div className="flex items-center gap-3">
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(Number(e.target.value))}
-              className="h-9 px-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
-            >
-              {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
-                <option key={m} value={m}>شهر {m}</option>
-              ))}
-            </select>
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="h-9 px-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
-            >
-              {[2024,2025,2026].map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-            <Button color="success" variant="shadow" size="sm" startContent={<Download className="h-4 w-4" />} onPress={exportCSV} className="font-bold">تصدير CSV</Button>
+      <PageHeader title="التقارير" subtitle={`تحليل مالي شامل لشهر ${selectedMonth}/${selectedYear}`} icon={FileBarChart} iconBg="from-indigo-500 to-indigo-600">
+        <select
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(Number(e.target.value))}
+          className="h-9 px-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer appearance-none"
+          style={{ minWidth: '90px' }}
+        >
+          {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+            <option key={m} value={m}>شهر {m}</option>
+          ))}
+        </select>
+        <select
+          value={selectedYear}
+          onChange={(e) => setSelectedYear(Number(e.target.value))}
+          className="h-9 px-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer appearance-none"
+          style={{ minWidth: '80px' }}
+        >
+          {[2024,2025,2026].map(y => (
+            <option key={y} value={y}>{y}</option>
+          ))}
+        </select>
+        <button
+          onClick={exportCSV}
+          className="flex items-center gap-1.5 h-9 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+        >
+          <Download className="h-4 w-4" />
+          تصدير CSV
+        </button>
+      </PageHeader>
+
+      {loading ? <div className="flex items-center justify-center h-64"><Spinner size="lg" /></div> : (
+        <>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            {[
+              { title: 'إجمالي الإيرادات', value: formatCurrency(report.totalRevenue), icon: TrendingUp, gradient: 'from-emerald-500 to-green-600', textColor: 'text-emerald-700' },
+              { title: 'إجمالي المصروفات', value: formatCurrency(report.totalExpenses), icon: TrendingDown, gradient: 'from-rose-500 to-pink-600', textColor: 'text-rose-700' },
+              { title: 'صافي الربح', value: formatCurrency(report.netProfit), icon: DollarSign, gradient: report.netProfit >= 0 ? 'from-blue-500 to-cyan-600' : 'from-red-500 to-rose-600', textColor: report.netProfit >= 0 ? 'text-blue-700' : 'text-red-700' },
+              { title: 'قيمة المخزون', value: formatCurrency(report.inventoryValue), icon: FileBarChart, gradient: 'from-violet-500 to-purple-600', textColor: 'text-violet-700' },
+            ].map((card, i) => (
+              <Card key={i} className="shadow-md">
+                <CardBody className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 mb-1">{card.title}</p>
+                      <p className={`text-2xl font-extrabold ${card.textColor}`}>{card.value}</p>
+                    </div>
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${card.gradient} shadow-lg`}>
+                      <card.icon className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            ))}
           </div>
-        </PageHeader>
 
-        {loading ? <div className="flex items-center justify-center h-64"><Spinner size="lg" /></div> : (
-          <>
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-              {[
-                { title: 'إجمالي الإيرادات', value: formatCurrency(report.totalRevenue), icon: TrendingUp, gradient: 'from-emerald-500 to-green-600', textColor: 'text-emerald-700' },
-                { title: 'إجمالي المصروفات', value: formatCurrency(report.totalExpenses), icon: TrendingDown, gradient: 'from-rose-500 to-pink-600', textColor: 'text-rose-700' },
-                { title: 'صافي الربح', value: formatCurrency(report.netProfit), icon: DollarSign, gradient: report.netProfit >= 0 ? 'from-blue-500 to-cyan-600' : 'from-red-500 to-rose-600', textColor: report.netProfit >= 0 ? 'text-blue-700' : 'text-red-700' },
-                { title: 'قيمة المخزون', value: formatCurrency(report.inventoryValue), icon: FileBarChart, gradient: 'from-violet-500 to-purple-600', textColor: 'text-violet-700' },
-              ].map((card, i) => (
-                <Card key={i} className="shadow-md">
-                  <CardBody className="p-5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-semibold text-slate-500 mb-1">{card.title}</p>
-                        <p className={`text-2xl font-extrabold ${card.textColor}`}>{card.value}</p>
-                      </div>
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${card.gradient} shadow-lg`}>
-                        <card.icon className="h-6 w-6 text-white" />
-                      </div>
-                    </div>
-                  </CardBody>
-                </Card>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              {/* Revenue Breakdown */}
-              <Card className="shadow-md">
-                <CardHeader className="px-6 pt-5 pb-0 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-emerald-500" />
-                  <h3 className="font-extrabold text-slate-900">تفاصيل الإيرادات</h3>
-                </CardHeader>
-                <CardBody className="px-6 space-y-3">
-                  <div className="flex justify-between items-center p-3 rounded-xl bg-blue-50">
-                    <span className="font-semibold text-sm">إيرادات الكشف</span>
-                    <span className="font-extrabold text-blue-600">{formatCurrency(report.servicesByType.inspection)}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 rounded-xl bg-emerald-50">
-                    <span className="font-semibold text-sm">إيرادات الصيانة</span>
-                    <span className="font-extrabold text-emerald-600">{formatCurrency(report.servicesByType.repair)}</span>
-                  </div>
-                  <Divider />
-                  <div className="flex justify-between items-center p-3 rounded-xl bg-slate-100">
-                    <span className="font-bold">الإجمالي</span>
-                    <span className="font-extrabold text-lg">{formatCurrency(report.totalRevenue)}</span>
-                  </div>
-                </CardBody>
-              </Card>
-
-              {/* Expenses Breakdown */}
-              <Card className="shadow-md">
-                <CardHeader className="px-6 pt-5 pb-0 flex items-center gap-2">
-                  <TrendingDown className="h-5 w-5 text-rose-500" />
-                  <h3 className="font-extrabold text-slate-900">تفاصيل المصروفات</h3>
-                </CardHeader>
-                <CardBody className="px-6 space-y-2 max-h-64 overflow-y-auto">
-                  {report.expensesByCategory.map((exp, i) => (
-                    <div key={i} className="flex justify-between items-center p-2.5 rounded-xl bg-rose-50">
-                      <span className="font-semibold text-sm">{exp.category}</span>
-                      <span className="font-extrabold text-rose-600">{formatCurrency(exp.total)}</span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between items-center p-2.5 rounded-xl bg-violet-50">
-                    <span className="font-semibold text-sm">الرواتب</span>
-                    <span className="font-extrabold text-violet-600">{formatCurrency(report.totalPayroll)}</span>
-                  </div>
-                  <Divider />
-                  <div className="flex justify-between items-center p-3 rounded-xl bg-slate-100">
-                    <span className="font-bold">الإجمالي</span>
-                    <span className="font-extrabold text-lg">{formatCurrency(report.totalExpenses)}</span>
-                  </div>
-                </CardBody>
-              </Card>
-            </div>
-
-            {/* P&L Statement */}
-            <Card className="shadow-md overflow-hidden">
-              <CardHeader className="px-6 pt-5 pb-0">
-                <h3 className="font-extrabold text-slate-900">قائمة الأرباح والخسائر - {selectedMonth}/{selectedYear}</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Revenue Breakdown */}
+            <Card className="shadow-md">
+              <CardHeader className="px-6 pt-5 pb-0 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-emerald-500" />
+                <h3 className="font-extrabold text-slate-900">تفاصيل الإيرادات</h3>
               </CardHeader>
-              <CardBody className="px-0">
-                <table className="w-full">
-                  <tbody>
-                    <tr className="bg-emerald-50"><td className="px-6 py-3 font-bold text-right">إجمالي الإيرادات</td><td className="px-6 py-3 text-left font-extrabold text-emerald-600">{formatCurrency(report.totalRevenue)}</td></tr>
-                    <tr><td className="px-6 py-2.5 pr-10 text-slate-500 text-right">إيرادات الكشف</td><td className="px-6 py-2.5 text-left">{formatCurrency(report.servicesByType.inspection)}</td></tr>
-                    <tr><td className="px-6 py-2.5 pr-10 text-slate-500 text-right">إيرادات الصيانة</td><td className="px-6 py-2.5 text-left">{formatCurrency(report.servicesByType.repair)}</td></tr>
-                    <tr className="bg-rose-50"><td className="px-6 py-3 font-bold text-right">إجمالي المصروفات</td><td className="px-6 py-3 text-left font-extrabold text-rose-600">({formatCurrency(report.totalExpenses)})</td></tr>
-                    {report.expensesByCategory.slice(0, 5).map((exp, i) => (
-                      <tr key={i}><td className="px-6 py-2.5 pr-10 text-slate-500 text-right">{exp.category}</td><td className="px-6 py-2.5 text-left">{formatCurrency(exp.total)}</td></tr>
-                    ))}
-                    <tr><td className="px-6 py-2.5 pr-10 text-slate-500 text-right">الرواتب</td><td className="px-6 py-2.5 text-left">{formatCurrency(report.totalPayroll)}</td></tr>
-                    <tr className={report.netProfit >= 0 ? 'bg-emerald-100' : 'bg-rose-100'}>
-                      <td className="px-6 py-4 font-extrabold text-base text-right">صافي الربح / الخسارة</td>
-                      <td className={`px-6 py-4 text-left font-extrabold text-xl ${report.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(report.netProfit)}</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <CardBody className="px-6 space-y-3">
+                <div className="flex justify-between items-center p-3 rounded-xl bg-blue-50">
+                  <span className="font-semibold text-sm">إيرادات الكشف</span>
+                  <span className="font-extrabold text-blue-600">{formatCurrency(report.servicesByType.inspection)}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 rounded-xl bg-emerald-50">
+                  <span className="font-semibold text-sm">إيرادات الصيانة</span>
+                  <span className="font-extrabold text-emerald-600">{formatCurrency(report.servicesByType.repair)}</span>
+                </div>
+                <Divider />
+                <div className="flex justify-between items-center p-3 rounded-xl bg-slate-100">
+                  <span className="font-bold">الإجمالي</span>
+                  <span className="font-extrabold text-lg">{formatCurrency(report.totalRevenue)}</span>
+                </div>
               </CardBody>
             </Card>
-          </>
-        )}
+
+            {/* Expenses Breakdown */}
+            <Card className="shadow-md">
+              <CardHeader className="px-6 pt-5 pb-0 flex items-center gap-2">
+                <TrendingDown className="h-5 w-5 text-rose-500" />
+                <h3 className="font-extrabold text-slate-900">تفاصيل المصروفات</h3>
+              </CardHeader>
+              <CardBody className="px-6 space-y-2 max-h-64 overflow-y-auto">
+                {report.expensesByCategory.map((exp, i) => (
+                  <div key={i} className="flex justify-between items-center p-2.5 rounded-xl bg-rose-50">
+                    <span className="font-semibold text-sm">{exp.category}</span>
+                    <span className="font-extrabold text-rose-600">{formatCurrency(exp.total)}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between items-center p-2.5 rounded-xl bg-violet-50">
+                  <span className="font-semibold text-sm">الرواتب</span>
+                  <span className="font-extrabold text-violet-600">{formatCurrency(report.totalPayroll)}</span>
+                </div>
+                <Divider />
+                <div className="flex justify-between items-center p-3 rounded-xl bg-slate-100">
+                  <span className="font-bold">الإجمالي</span>
+                  <span className="font-extrabold text-lg">{formatCurrency(report.totalExpenses)}</span>
+                </div>
+              </CardBody>
+            </Card>
+          </div>
+
+          {/* P&L Statement */}
+          <Card className="shadow-md overflow-hidden">
+            <CardHeader className="px-6 pt-5 pb-0">
+              <h3 className="font-extrabold text-slate-900">قائمة الأرباح والخسائر - {selectedMonth}/{selectedYear}</h3>
+            </CardHeader>
+            <CardBody className="px-0">
+              <table className="w-full">
+                <tbody>
+                  <tr className="bg-emerald-50"><td className="px-6 py-3 font-bold text-right">إجمالي الإيرادات</td><td className="px-6 py-3 text-left font-extrabold text-emerald-600">{formatCurrency(report.totalRevenue)}</td></tr>
+                  <tr><td className="px-6 py-2.5 pr-10 text-slate-500 text-right">إيرادات الكشف</td><td className="px-6 py-2.5 text-left">{formatCurrency(report.servicesByType.inspection)}</td></tr>
+                  <tr><td className="px-6 py-2.5 pr-10 text-slate-500 text-right">إيرادات الصيانة</td><td className="px-6 py-2.5 text-left">{formatCurrency(report.servicesByType.repair)}</td></tr>
+                  <tr className="bg-rose-50"><td className="px-6 py-3 font-bold text-right">إجمالي المصروفات</td><td className="px-6 py-3 text-left font-extrabold text-rose-600">({formatCurrency(report.totalExpenses)})</td></tr>
+                  {report.expensesByCategory.slice(0, 5).map((exp, i) => (
+                    <tr key={i}><td className="px-6 py-2.5 pr-10 text-slate-500 text-right">{exp.category}</td><td className="px-6 py-2.5 text-left">{formatCurrency(exp.total)}</td></tr>
+                  ))}
+                  <tr><td className="px-6 py-2.5 pr-10 text-slate-500 text-right">الرواتب</td><td className="px-6 py-2.5 text-left">{formatCurrency(report.totalPayroll)}</td></tr>
+                  <tr className={report.netProfit >= 0 ? 'bg-emerald-100' : 'bg-rose-100'}>
+                    <td className="px-6 py-4 font-extrabold text-base text-right">صافي الربح / الخسارة</td>
+                    <td className={`px-6 py-4 text-left font-extrabold text-xl ${report.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(report.netProfit)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </CardBody>
+          </Card>
+        </>
+      )}
     </div>
   )
 }
