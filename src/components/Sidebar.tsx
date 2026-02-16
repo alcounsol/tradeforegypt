@@ -2,26 +2,63 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { useState } from 'react'
 import {
   LayoutDashboard, Package, ShoppingCart, Receipt, Wrench,
-  Users, Wallet, UserCircle, Truck, FileBarChart, Settings, LogOut
+  Users, Wallet, UserCircle, Truck, FileBarChart, Settings, LogOut,
+  Phone, PhoneForwarded, TrendingUp, Gift, ClipboardList, ChevronDown, ChevronLeft
 } from 'lucide-react'
 
-const navItems = [
-  { href: '/dashboard', label: 'لوحة التحكم', icon: LayoutDashboard, color: 'bg-blue-500' },
-  { href: '/inventory', label: 'المخزون', icon: Package, color: 'bg-emerald-500' },
-  { href: '/purchases', label: 'المشتريات', icon: ShoppingCart, color: 'bg-cyan-500' },
-  { href: '/expenses', label: 'المصروفات', icon: Receipt, color: 'bg-rose-500' },
-  { href: '/services', label: 'الخدمات', icon: Wrench, color: 'bg-amber-500' },
-  { href: '/employees', label: 'الموظفين', icon: Users, color: 'bg-violet-500' },
-  { href: '/payroll', label: 'الرواتب', icon: Wallet, color: 'bg-pink-500' },
-  { href: '/customers', label: 'العملاء', icon: UserCircle, color: 'bg-teal-500' },
-  { href: '/suppliers', label: 'الموردين', icon: Truck, color: 'bg-orange-500' },
-  { href: '/reports', label: 'التقارير', icon: FileBarChart, color: 'bg-indigo-500' },
+const navSections = [
+  {
+    title: 'الرئيسية',
+    items: [
+      { href: '/dashboard', label: 'لوحة التحكم', icon: LayoutDashboard, color: 'bg-blue-500' },
+    ]
+  },
+  {
+    title: 'إدارة العملاء',
+    items: [
+      { href: '/call-center', label: 'الكول سنتر', icon: Phone, color: 'bg-green-500' },
+      { href: '/follow-up', label: 'المتابعة', icon: PhoneForwarded, color: 'bg-sky-500' },
+      { href: '/sales', label: 'المبيعات', icon: TrendingUp, color: 'bg-purple-500' },
+      { href: '/customers', label: 'العملاء', icon: UserCircle, color: 'bg-teal-500' },
+      { href: '/device-receipts', label: 'استلام الأجهزة', icon: ClipboardList, color: 'bg-lime-600' },
+    ]
+  },
+  {
+    title: 'العمليات',
+    items: [
+      { href: '/services', label: 'الخدمات والصيانة', icon: Wrench, color: 'bg-amber-500' },
+      { href: '/inventory', label: 'المخزون', icon: Package, color: 'bg-emerald-500' },
+      { href: '/purchases', label: 'المشتريات', icon: ShoppingCart, color: 'bg-cyan-500' },
+      { href: '/expenses', label: 'المصروفات', icon: Receipt, color: 'bg-rose-500' },
+    ]
+  },
+  {
+    title: 'الموارد البشرية',
+    items: [
+      { href: '/employees', label: 'الموظفين', icon: Users, color: 'bg-violet-500' },
+      { href: '/payroll', label: 'الرواتب', icon: Wallet, color: 'bg-pink-500' },
+      { href: '/incentives', label: 'الحوافز', icon: Gift, color: 'bg-yellow-500' },
+    ]
+  },
+  {
+    title: 'أخرى',
+    items: [
+      { href: '/suppliers', label: 'الموردين', icon: Truck, color: 'bg-orange-500' },
+      { href: '/reports', label: 'التقارير', icon: FileBarChart, color: 'bg-indigo-500' },
+    ]
+  },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+
+  const toggleSection = (title: string) => {
+    setCollapsed(prev => ({ ...prev, [title]: !prev[title] }))
+  }
 
   return (
     <aside className="flex h-screen w-[260px] min-w-[260px] flex-col bg-white border-l border-gray-200 shadow-sm">
@@ -37,50 +74,56 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
-        <p className="px-3 mb-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">القائمة الرئيسية</p>
-        <div className="space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition-all duration-200 ${
-                  isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
-                }`}
-              >
-                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                  isActive ? item.color : 'bg-gray-100'
-                }`}>
-                  <item.icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-gray-500'}`} />
-                </div>
-                <span>{item.label}</span>
-                {isActive && (
-                  <div className="mr-auto h-2 w-2 rounded-full bg-blue-500" />
-                )}
-              </Link>
-            )
-          })}
-        </div>
+      <nav className="flex-1 overflow-y-auto px-3 py-3">
+        {navSections.map((section) => (
+          <div key={section.title} className="mb-2">
+            <button
+              onClick={() => toggleSection(section.title)}
+              className="flex items-center justify-between w-full px-3 mb-1 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-gray-600 transition-colors"
+            >
+              <span>{section.title}</span>
+              <ChevronDown className={`h-3 w-3 transition-transform ${collapsed[section.title] ? '-rotate-90' : ''}`} />
+            </button>
+            {!collapsed[section.title] && (
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const isActive = pathname === item.href
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold transition-all duration-200 ${
+                        isActive
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                      }`}
+                    >
+                      <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                        isActive ? item.color : 'bg-gray-100'
+                      }`}>
+                        <item.icon className={`h-3.5 w-3.5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                      </div>
+                      <span className="text-xs">{item.label}</span>
+                      {isActive && (
+                        <div className="mr-auto h-1.5 w-1.5 rounded-full bg-blue-500" />
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        ))}
       </nav>
 
       {/* Footer */}
       <div className="border-t border-gray-100 px-3 py-3 space-y-1">
-        <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-500 transition-all hover:bg-gray-50 hover:text-gray-700">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100">
-            <Settings className="h-4 w-4 text-gray-500" />
+        <Link href="/settings" className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold text-gray-500 transition-all hover:bg-gray-50 hover:text-gray-700">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gray-100">
+            <Settings className="h-3.5 w-3.5 text-gray-500" />
           </div>
-          <span>الإعدادات</span>
-        </button>
-        <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-red-500 transition-all hover:bg-red-50">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-50">
-            <LogOut className="h-4 w-4 text-red-500" />
-          </div>
-          <span>تسجيل الخروج</span>
-        </button>
+          <span className="text-xs">الإعدادات</span>
+        </Link>
       </div>
     </aside>
   )
