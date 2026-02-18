@@ -187,9 +187,9 @@ export default function Purchases() {
                 ...items.map(i => ({ value: String(i.id), label: `${i.name} (المخزون: ${i.current_stock})` }))
               ]} />
             </div>
-            <Button size="sm" color="primary" variant="flat" className="mb-1 font-bold" onPress={() => setIsNewItemOpen(true)} startContent={<Plus className="h-3 w-3" />}>
-              صنف جديد
-            </Button>
+            <button onClick={() => setIsNewItemOpen(true)} className="action-btn flex items-center gap-1 mb-1 text-xs">
+              <Plus className="h-3 w-3" />صنف جديد
+            </button>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <FormInput label="الكمية" type="number" value={formData.quantity} onChange={(v) => setFormData({...formData, quantity: parseInt(v) || 0})} required />

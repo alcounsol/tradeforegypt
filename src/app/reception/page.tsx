@@ -217,25 +217,25 @@ export default function ReceptionPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <Button size="sm" variant={filterStatus === 'all' ? 'shadow' : 'flat'} color={filterStatus === 'all' ? 'primary' : 'default'} onPress={() => setFilterStatus('all')} className="font-bold">
+      <div className="flex flex-wrap gap-3 mb-4">
+        <button onClick={() => setFilterStatus('all')} className={filterStatus === 'all' ? 'filter-btn-active filter-btn-active-primary' : 'filter-btn'}>
           الكل ({customers.length})
-        </Button>
-        <Button size="sm" variant={filterStatus === 'new' ? 'shadow' : 'flat'} color={filterStatus === 'new' ? 'primary' : 'default'} onPress={() => setFilterStatus('new')} className="font-bold">
+        </button>
+        <button onClick={() => setFilterStatus('new')} className={filterStatus === 'new' ? 'filter-btn-active filter-btn-active-primary' : 'filter-btn'}>
           جديد - من الكول سنتر ({customers.filter(c => c.status === 'new').length})
-        </Button>
-        <Button size="sm" variant={filterStatus === 'arrived' ? 'shadow' : 'flat'} color={filterStatus === 'arrived' ? 'success' : 'default'} onPress={() => setFilterStatus('arrived')} className="font-bold">
+        </button>
+        <button onClick={() => setFilterStatus('arrived')} className={filterStatus === 'arrived' ? 'filter-btn-active filter-btn-active-success' : 'filter-btn'}>
           وصل الشركة ({customers.filter(c => c.status === 'arrived').length})
-        </Button>
-        <Button size="sm" variant={filterStatus === 'device_received' ? 'shadow' : 'flat'} color={filterStatus === 'device_received' ? 'warning' : 'default'} onPress={() => setFilterStatus('device_received')} className="font-bold">
+        </button>
+        <button onClick={() => setFilterStatus('device_received')} className={filterStatus === 'device_received' ? 'filter-btn-active filter-btn-active-warning' : 'filter-btn'}>
           تم استلام الجهاز ({customers.filter(c => c.status === 'device_received').length})
-        </Button>
-        <Button size="sm" variant={filterStatus === 'in_repair' ? 'shadow' : 'flat'} color={filterStatus === 'in_repair' ? 'secondary' : 'default'} onPress={() => setFilterStatus('in_repair')} className="font-bold">
+        </button>
+        <button onClick={() => setFilterStatus('in_repair')} className={filterStatus === 'in_repair' ? 'filter-btn-active filter-btn-active-secondary' : 'filter-btn'}>
           قيد الصيانة ({customers.filter(c => c.status === 'in_repair').length})
-        </Button>
-        <Button size="sm" variant={filterStatus === 'completed' ? 'shadow' : 'flat'} color={filterStatus === 'completed' ? 'success' : 'default'} onPress={() => setFilterStatus('completed')} className="font-bold">
+        </button>
+        <button onClick={() => setFilterStatus('completed')} className={filterStatus === 'completed' ? 'filter-btn-active filter-btn-active-success' : 'filter-btn'}>
           مكتمل ({customers.filter(c => c.status === 'completed').length})
-        </Button>
+        </button>
       </div>
 
       {/* Customer Table */}

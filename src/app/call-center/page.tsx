@@ -194,9 +194,10 @@ export default function CallCenter() {
 
       {/* Employee Performance Button */}
       <div className="mb-4">
-        <Button size="sm" variant="flat" color="primary" onPress={() => setIsPerformanceOpen(true)} className="font-bold" startContent={<TrendingUp className="h-4 w-4" />}>
+        <button onClick={() => setIsPerformanceOpen(true)} className="action-btn flex items-center gap-2">
+          <TrendingUp className="h-4 w-4" />
           أداء موظفي الكول سنتر
-        </Button>
+        </button>
       </div>
 
       <Card className="shadow-md">

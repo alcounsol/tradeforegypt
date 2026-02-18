@@ -102,7 +102,7 @@ export default function Payroll() {
       <PageHeader title="الرواتب" subtitle={`كشف رواتب شهر ${month}/${year}`} icon={Banknote} iconBg="from-rose-500 to-rose-600" buttonLabel="إضافة سجل" onButtonClick={openAdd}>
         <StyledSelect value={month} onChange={(v) => setMonth(Number(v))} options={monthOptions} minWidth="110px" />
         <StyledSelect value={year} onChange={(v) => setYear(Number(v))} options={yearOptions} minWidth="90px" />
-        <Button size="sm" color="secondary" variant="flat" className="font-bold" onPress={generateAll} startContent={<Calculator className="h-3 w-3" />}>إنشاء للكل</Button>
+        <button onClick={generateAll} className="action-btn flex items-center gap-2 text-xs"><Calculator className="h-3 w-3" />إنشاء للكل</button>
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -126,7 +126,7 @@ export default function Payroll() {
           : records.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-slate-400">
               <Banknote className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد سجلات رواتب</p>
-              <Button size="sm" color="primary" variant="flat" className="mt-3 font-bold" onPress={generateAll}>إنشاء رواتب لجميع الموظفين</Button>
+              <button onClick={generateAll} className="action-btn mt-3">إنشاء رواتب لجميع الموظفين</button>
             </div>
           ) : (
             <Table aria-label="جدول الرواتب" removeWrapper className="min-w-full">
@@ -150,9 +150,9 @@ export default function Payroll() {
                       <TableCell className="text-sm text-red-600 font-semibold">{r.deductions > 0 ? `-${formatCurrency(r.deductions)}` : '-'}</TableCell>
                       <TableCell className="font-extrabold text-rose-600">{formatCurrency(r.net_paid)}</TableCell>
                       <TableCell>
-                        <Button size="sm" variant="flat" color={r.is_paid ? 'success' : 'danger'} className="font-bold text-xs" onPress={() => togglePaid(r)}>
+                        <button onClick={() => togglePaid(r)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all duration-200 ${r.is_paid ? 'border-green-400 bg-green-50 text-green-700 hover:bg-green-100' : 'border-red-400 bg-red-50 text-red-700 hover:bg-red-100'}`}>
                           {r.is_paid ? 'تم الصرف' : 'لم يُصرف'}
-                        </Button>
+                        </button>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">

@@ -204,15 +204,18 @@ export default function DeviceReceiptsPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <Button size="sm" variant={filterStatus === 'all' ? 'shadow' : 'flat'} color={filterStatus === 'all' ? 'primary' : 'default'} onPress={() => setFilterStatus('all')} className="font-bold">
+      <div className="flex flex-wrap gap-3 mb-4">
+        <button onClick={() => setFilterStatus('all')} className={filterStatus === 'all' ? 'filter-btn-active filter-btn-active-primary' : 'filter-btn'}>
           الكل ({records.length})
-        </Button>
-        {Object.entries(statusConfig).map(([key, cfg]) => (
-          <Button key={key} size="sm" variant={filterStatus === key ? 'shadow' : 'flat'} color={filterStatus === key ? cfg.color : 'default'} onPress={() => setFilterStatus(key)} className="font-bold">
-            {cfg.label} ({records.filter(r => r.status === key).length})
-          </Button>
-        ))}
+        </button>
+        {Object.entries(statusConfig).map(([key, cfg]) => {
+          const colorMap: Record<string, string> = { primary: 'filter-btn-active-primary', success: 'filter-btn-active-success', warning: 'filter-btn-active-warning', secondary: 'filter-btn-active-secondary', danger: 'filter-btn-active-danger' }
+          return (
+            <button key={key} onClick={() => setFilterStatus(key)} className={filterStatus === key ? `filter-btn-active ${colorMap[cfg.color] || 'filter-btn-active-primary'}` : 'filter-btn'}>
+              {cfg.label} ({records.filter(r => r.status === key).length})
+            </button>
+          )
+        })}
       </div>
 
       <Card className="shadow-md">

@@ -143,15 +143,15 @@ export default function Dashboard() {
       </div>
 
       {/* Period Selector */}
-      <div className="flex gap-2 mb-8">
+      <div className="flex gap-3 mb-8">
         {[
           { key: 'today' as const, label: 'اليوم' },
           { key: 'week' as const, label: 'هذا الأسبوع' },
           { key: 'month' as const, label: 'هذا الشهر' },
         ].map(p => (
-          <Button key={p.key} size="sm" variant={period === p.key ? 'shadow' : 'flat'} color={period === p.key ? 'primary' : 'default'} onPress={() => setPeriod(p.key)} className="font-bold">
+          <button key={p.key} onClick={() => setPeriod(p.key)} className={period === p.key ? 'period-btn-active' : 'period-btn'}>
             {p.label}
-          </Button>
+          </button>
         ))}
       </div>
 

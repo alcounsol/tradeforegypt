@@ -72,14 +72,14 @@ export default function Employees() {
       </PageHeader>
 
       {/* Department Filter */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <Button size="sm" variant={filterDept === 'all' ? 'shadow' : 'flat'} color={filterDept === 'all' ? 'primary' : 'default'} onPress={() => setFilterDept('all')} className="font-bold">
+      <div className="flex flex-wrap gap-3 mb-6">
+        <button onClick={() => setFilterDept('all')} className={filterDept === 'all' ? 'filter-btn-active filter-btn-active-primary' : 'filter-btn'}>
           الكل ({employees.length})
-        </Button>
+        </button>
         {departments.map(dept => (
-          <Button key={dept} size="sm" variant={filterDept === dept ? 'shadow' : 'flat'} color={filterDept === dept ? 'primary' : 'default'} onPress={() => setFilterDept(dept)} className="font-bold">
+          <button key={dept} onClick={() => setFilterDept(dept)} className={filterDept === dept ? 'filter-btn-active filter-btn-active-primary' : 'filter-btn'}>
             {departmentLabels[dept] || dept} ({employees.filter(e => e.department === dept).length})
-          </Button>
+          </button>
         ))}
       </div>
 

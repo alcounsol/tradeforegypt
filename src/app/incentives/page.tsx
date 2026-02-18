@@ -168,9 +168,9 @@ export default function IncentivesPage() {
                       <TableCell className="font-extrabold text-yellow-600">{formatCurrency(r.amount)}</TableCell>
                       <TableCell className="text-sm text-slate-600 max-w-[200px] truncate">{r.description || '-'}</TableCell>
                       <TableCell>
-                        <Button size="sm" variant="flat" color={r.is_paid ? 'success' : 'danger'} className="font-bold text-xs" onPress={() => togglePaid(r)}>
+                        <button onClick={() => togglePaid(r)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all duration-200 ${r.is_paid ? 'border-green-400 bg-green-50 text-green-700 hover:bg-green-100' : 'border-red-400 bg-red-50 text-red-700 hover:bg-red-100'}`}>
                           {r.is_paid ? 'تم الصرف' : 'لم يُصرف'}
-                        </Button>
+                        </button>
                       </TableCell>
                       <TableCell className="text-sm text-slate-500">{r.incentive_date ? formatDate(r.incentive_date) : '-'}</TableCell>
                       <TableCell>

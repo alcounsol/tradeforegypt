@@ -251,7 +251,7 @@ export default function Services() {
           <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-bold text-emerald-700">قطع الغيار من المخزون (يتم خصمها تلقائياً)</p>
-              <Button size="sm" variant="flat" color="success" className="font-bold" onPress={addPart} startContent={<Plus className="h-3 w-3" />}>إضافة قطعة</Button>
+              <button onClick={addPart} className="action-btn flex items-center gap-1 text-xs border-green-400 bg-green-50 text-green-700 hover:bg-green-100 hover:border-green-500"><Plus className="h-3 w-3" />إضافة قطعة</button>
             </div>
             {parts.map((part, idx) => (
               <div key={idx} className="flex items-end gap-2 mt-2">

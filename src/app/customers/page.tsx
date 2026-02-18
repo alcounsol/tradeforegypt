@@ -81,13 +81,13 @@ export default function Customers() {
         <SearchInput value={search} onChange={setSearch} placeholder="بحث عن عميل..." />
       </PageHeader>
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        <Button size="sm" variant={filterType === 'all' ? 'shadow' : 'flat'} color={filterType === 'all' ? 'primary' : 'default'} onPress={() => setFilterType('all')} className="font-bold">الكل</Button>
-        <Button size="sm" variant={filterType === 'individual' ? 'shadow' : 'flat'} color={filterType === 'individual' ? 'primary' : 'default'} onPress={() => setFilterType('individual')} className="font-bold">أفراد</Button>
-        <Button size="sm" variant={filterType === 'company' ? 'shadow' : 'flat'} color={filterType === 'company' ? 'primary' : 'default'} onPress={() => setFilterType('company')} className="font-bold">شركات</Button>
-        <div className="w-px bg-slate-200 mx-2" />
+      <div className="flex flex-wrap gap-3 mb-6">
+        <button onClick={() => setFilterType('all')} className={filterType === 'all' ? 'filter-btn-active filter-btn-active-primary' : 'filter-btn'}>الكل</button>
+        <button onClick={() => setFilterType('individual')} className={filterType === 'individual' ? 'filter-btn-active filter-btn-active-primary' : 'filter-btn'}>أفراد</button>
+        <button onClick={() => setFilterType('company')} className={filterType === 'company' ? 'filter-btn-active filter-btn-active-teal' : 'filter-btn'}>شركات</button>
+        <div className="w-px bg-slate-300 mx-1" />
         {Object.entries(statusLabels).map(([k, v]) => (
-          <Button key={k} size="sm" variant={filterStatus === k ? 'shadow' : 'flat'} color={filterStatus === k ? 'secondary' : 'default'} onPress={() => setFilterStatus(filterStatus === k ? 'all' : k)} className="font-bold">{v.label}</Button>
+          <button key={k} onClick={() => setFilterStatus(filterStatus === k ? 'all' : k)} className={filterStatus === k ? 'filter-btn-active filter-btn-active-secondary' : 'filter-btn'}>{v.label}</button>
         ))}
       </div>
 

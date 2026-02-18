@@ -49,3 +49,58 @@ body {
   height: 100vh !important;
   height: 100dvh !important;
 }
+
+/* Professional Filter/Tab Buttons */
+.filter-btn {
+  @apply px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 border-2 cursor-pointer;
+  @apply border-slate-200 bg-white text-slate-600;
+  @apply hover:border-slate-300 hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5;
+}
+
+.filter-btn-active {
+  @apply px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 border-2 cursor-pointer;
+  @apply shadow-lg -translate-y-0.5;
+}
+
+.filter-btn-active-primary {
+  @apply border-blue-500 bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-blue-200;
+}
+
+.filter-btn-active-success {
+  @apply border-green-500 bg-gradient-to-r from-green-500 to-green-600 text-white shadow-green-200;
+}
+
+.filter-btn-active-warning {
+  @apply border-amber-500 bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-amber-200;
+}
+
+.filter-btn-active-secondary {
+  @apply border-purple-500 bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-purple-200;
+}
+
+.filter-btn-active-danger {
+  @apply border-red-500 bg-gradient-to-r from-red-500 to-red-600 text-white shadow-red-200;
+}
+
+.filter-btn-active-teal {
+  @apply border-teal-500 bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-teal-200;
+}
+
+/* Period Selector Buttons */
+.period-btn {
+  @apply px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 border-2 cursor-pointer;
+  @apply border-slate-200 bg-white text-slate-600;
+  @apply hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md;
+}
+
+.period-btn-active {
+  @apply px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 border-2 cursor-pointer;
+  @apply border-indigo-500 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-200;
+}
+
+/* Action Buttons */
+.action-btn {
+  @apply px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 border-2 cursor-pointer;
+  @apply border-blue-400 bg-blue-50 text-blue-700;
+  @apply hover:bg-blue-100 hover:shadow-md hover:border-blue-500;
+}
