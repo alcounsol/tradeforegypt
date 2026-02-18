@@ -228,6 +228,72 @@ export type ServicePart = {
   inventory_item?: InventoryItem
 }
 
+export type Invoice = {
+  id: number
+  invoice_number: string | null
+  customer_id: number | null
+  invoice_type: string
+  invoice_date: string
+  due_date: string | null
+  subtotal: number
+  discount: number
+  tax: number
+  total_amount: number
+  paid_amount: number
+  status: string
+  payment_method: string | null
+  service_record_id: number | null
+  sales_activity_id: number | null
+  device_receipt_id: number | null
+  notes: string | null
+  created_by: number | null
+  created_at: string
+  customer?: Customer
+  service_record?: ServiceRecord
+  sales_activity?: SalesActivity
+  device_receipt?: DeviceReceipt
+  items?: InvoiceItem[]
+}
+
+export type InvoiceItem = {
+  id: number
+  invoice_id: number
+  description: string
+  item_type: string
+  quantity: number
+  unit_price: number
+  total_price: number
+  inventory_item_id: number | null
+  created_at: string
+}
+
+export type Transaction = {
+  id: number
+  transaction_date: string
+  type: string
+  category: string
+  amount: number
+  description: string | null
+  reference_type: string | null
+  reference_id: number | null
+  invoice_id: number | null
+  purchase_id: number | null
+  payroll_id: number | null
+  expense_id: number | null
+  created_at: string
+  invoice?: Invoice
+}
+
+export type Payment = {
+  id: number
+  invoice_id: number
+  amount: number
+  payment_method: string
+  payment_date: string
+  notes: string | null
+  created_at: string
+}
+
 // Department labels
 export const departmentLabels: Record<string, string> = {
   maintenance: 'الصيانة',

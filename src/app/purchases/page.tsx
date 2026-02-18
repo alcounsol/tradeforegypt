@@ -73,7 +73,22 @@ export default function Purchases() {
       await supabase.from('purchases').update(data).eq('id', editItem.id)
     } else {
       // Insert purchase - trigger will auto-add to inventory
-      await supabase.from('purchases').insert([data])
+      const { data: newPurchase } = await supabase.from('purchases').insert([data]).select().single()
+      // Record as expense in transactions
+      if (newPurchase) {
+        const itemName = items.find(i => i.id === data.item_id)?.name || ''
+        const supplierName = suppliers.find(s => s.id === data.supplier_id)?.name || ''
+        await supabase.from('transactions').insert([{
+          transaction_date: data.purchase_date || new Date().toISOString().split('T')[0],
+          type: 'expense',
+          category: 'مشتريات',
+          amount: data.total_cost,
+          description: `شراء ${data.quantity} ${itemName} من ${supplierName}`,
+          reference_type: 'purchase',
+          reference_id: newPurchase.id,
+          purchase_id: newPurchase.id,
+        }])
+      }
     }
     onClose(); fetchAll()
   }

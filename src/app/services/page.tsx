@@ -108,6 +108,19 @@ export default function Services() {
       serviceId = data?.id || null
     }
 
+    // Record as income in transactions (only for new records)
+    if (serviceId && !editItem && formData.amount > 0) {
+      await supabase.from('transactions').insert([{
+        transaction_date: formData.service_date || new Date().toISOString().split('T')[0],
+        type: 'income',
+        category: formData.service_type === 'INSPECTION' ? '\u0643\u0634\u0641' : '\u0635\u064a\u0627\u0646\u0629',
+        amount: formData.amount,
+        description: `${formData.service_type === 'INSPECTION' ? '\u0643\u0634\u0641' : '\u0635\u064a\u0627\u0646\u0629'} - ${formData.customer_name} - ${formData.device_brand || ''} ${formData.device_model || ''}`,
+        reference_type: 'service',
+        reference_id: serviceId,
+      }])
+    }
+
     // Add parts (deducts from inventory via trigger)
     if (serviceId && parts.length > 0) {
       const validParts = parts.filter(p => p.inventory_item_id > 0 && p.quantity > 0)

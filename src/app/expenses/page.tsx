@@ -37,8 +37,24 @@ export default function Expenses() {
   function openEdit(item: Expense) { setEditItem(item); setFormData({ description: item.description || '', amount: item.amount, category: item.category || '', expense_date: item.expense_date || '' }); onOpen() }
 
   async function handleSubmit() {
-    if (editItem) { await supabase.from('expenses').update(formData).eq('id', editItem.id) }
-    else { await supabase.from('expenses').insert([formData]) }
+    if (editItem) {
+      await supabase.from('expenses').update(formData).eq('id', editItem.id)
+    } else {
+      const { data: newExpense } = await supabase.from('expenses').insert([formData]).select().single()
+      // Record in transactions
+      if (newExpense) {
+        await supabase.from('transactions').insert([{
+          transaction_date: formData.expense_date || new Date().toISOString().split('T')[0],
+          type: 'expense',
+          category: formData.category || 'مصروفات عامة',
+          amount: formData.amount,
+          description: formData.description,
+          reference_type: 'expense',
+          reference_id: newExpense.id,
+          expense_id: newExpense.id,
+        }])
+      }
+    }
     onClose(); fetchExpenses()
   }
 

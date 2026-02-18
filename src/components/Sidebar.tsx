@@ -6,7 +6,8 @@ import { useState } from 'react'
 import {
   LayoutDashboard, Package, ShoppingCart, Receipt, Wrench,
   Users, Wallet, UserCircle, Truck, FileBarChart, Settings, LogOut,
-  Phone, PhoneForwarded, TrendingUp, Gift, ClipboardList, ChevronDown, ChevronLeft, UserCheck
+  Phone, PhoneForwarded, TrendingUp, Gift, ClipboardList, ChevronDown, ChevronLeft, UserCheck,
+  FileText, Calculator
 } from 'lucide-react'
 
 const navSections = [
@@ -42,6 +43,13 @@ const navSections = [
       { href: '/employees', label: 'الموظفين', icon: Users, color: 'bg-violet-500' },
       { href: '/payroll', label: 'الرواتب', icon: Wallet, color: 'bg-pink-500' },
       { href: '/incentives', label: 'الحوافز', icon: Gift, color: 'bg-yellow-500' },
+    ]
+  },
+  {
+    title: 'المالية',
+    items: [
+      { href: '/invoices', label: 'الفواتير', icon: FileText, color: 'bg-indigo-500' },
+      { href: '/accounts', label: 'الحسابات المالية', icon: Calculator, color: 'bg-emerald-600' },
     ]
   },
   {

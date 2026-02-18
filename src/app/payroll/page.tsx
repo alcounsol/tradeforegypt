@@ -75,19 +75,53 @@ export default function Payroll() {
   }
 
   async function generateAll() {
-    if (!confirm('سيتم إنشاء سجلات رواتب لجميع الموظفين النشطين. متأكد؟')) return
+    if (!confirm('\u0633\u064a\u062a\u0645 \u0625\u0646\u0634\u0627\u0621 \u0633\u062c\u0644\u0627\u062a \u0631\u0648\u0627\u062a\u0628 \u0644\u062c\u0645\u064a\u0639 \u0627\u0644\u0645\u0648\u0638\u0641\u064a\u0646 \u0627\u0644\u0646\u0634\u0637\u064a\u0646 \u0645\u0639 \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u062d\u0648\u0627\u0641\u0632 \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b. \u0645\u062a\u0623\u0643\u062f\u061f')) return
     const existing = records.map(r => r.employee_id)
-    const newRecords = employees.filter(e => !existing.includes(e.id)).map(e => ({
-      employee_id: e.id, period_month: month, period_year: year,
-      base_salary: e.base_salary || 0, bonus: 0, deductions: 0,
-      net_paid: e.base_salary || 0, is_paid: false,
-    }))
+    
+    // Fetch incentives for each employee this month
+    const { data: incentives } = await supabase.from('incentives').select('*').eq('period_month', month).eq('period_year', year)
+    const incentivesByEmployee: Record<number, number> = {}
+    if (incentives) {
+      incentives.forEach(inc => {
+        incentivesByEmployee[inc.employee_id] = (incentivesByEmployee[inc.employee_id] || 0) + inc.total_amount
+      })
+    }
+    
+    const newRecords = employees.filter(e => !existing.includes(e.id)).map(e => {
+      const empIncentives = incentivesByEmployee[e.id] || 0
+      const baseSalary = e.base_salary || 0
+      return {
+        employee_id: e.id, period_month: month, period_year: year,
+        base_salary: baseSalary, bonus: empIncentives, deductions: 0,
+        net_paid: baseSalary + empIncentives, is_paid: false,
+      }
+    })
     if (newRecords.length > 0) { await supabase.from('payroll_records').insert(newRecords); fetchAll() }
-    else { alert('جميع الموظفين لديهم سجلات بالفعل') }
+    else { alert('\u062c\u0645\u064a\u0639 \u0627\u0644\u0645\u0648\u0638\u0641\u064a\u0646 \u0644\u062f\u064a\u0647\u0645 \u0633\u062c\u0644\u0627\u062a \u0628\u0627\u0644\u0641\u0639\u0644') }
   }
 
   async function togglePaid(item: PayrollRecord) {
-    await supabase.from('payroll_records').update({ is_paid: !item.is_paid }).eq('id', item.id); fetchAll()
+    const newPaid = !item.is_paid
+    await supabase.from('payroll_records').update({ is_paid: newPaid }).eq('id', item.id)
+    
+    // Record salary payment as expense in transactions
+    if (newPaid) {
+      const emp = item.employee as any
+      await supabase.from('transactions').insert([{
+        transaction_date: new Date().toISOString().split('T')[0],
+        type: 'expense',
+        category: '\u0631\u0648\u0627\u062a\u0628',
+        amount: item.net_paid,
+        description: `\u0631\u0627\u062a\u0628 ${emp?.name || ''} - \u0634\u0647\u0631 ${item.period_month}/${item.period_year}`,
+        reference_type: 'payroll',
+        reference_id: item.id,
+        payroll_id: item.id,
+      }])
+    } else {
+      // Remove the transaction if unpaid
+      await supabase.from('transactions').delete().eq('reference_type', 'payroll').eq('reference_id', item.id)
+    }
+    fetchAll()
   }
 
   const totalNet = records.reduce((s, r) => s + r.net_paid, 0)
