@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
-import { Card, CardBody, CardHeader, Chip, Button, Divider, Spinner } from '@nextui-org/react'
+import { Card, CardBody, CardHeader, Chip, Button, Divider, Spinner, Progress } from '@nextui-org/react'
 import {
   TrendingUp, TrendingDown, DollarSign, AlertTriangle,
   Wrench, Users, Package, FileBarChart, Download, Phone, PhoneForwarded,
-  MonitorSmartphone, Gift, ShoppingCart, LayoutDashboard
+  MonitorSmartphone, Gift, ShoppingCart, LayoutDashboard, UserCheck, CheckCircle, Clock, Target
 } from 'lucide-react'
 
 export default function Dashboard() {
@@ -18,9 +18,12 @@ export default function Dashboard() {
     totalCustomers: 0, totalServices: 0, inventoryCount: 0,
     totalCalls: 0, totalFollowUps: 0, totalSales: 0, totalDevices: 0,
     totalIncentives: 0, totalEmployees: 0,
+    ordersReceived: 0, ordersArrived: 0, ordersInRepair: 0, ordersCompleted: 0,
     lowStockItems: [] as { name: string; current_stock: number; min_stock_level: number }[],
     recentCalls: [] as any[], recentFollowUps: [] as any[],
     recentServices: [] as { customer_name: string; device_type: string; amount: number; status: string; service_date: string }[],
+    employeePerformance: [] as { name: string; department: string; calls: number; registered: number; arrived: number; incentives: number }[],
+    departmentStats: [] as { department: string; label: string; count: number; color: string }[],
   })
 
   useEffect(() => { fetchStats() }, [period])
@@ -37,9 +40,10 @@ export default function Dashboard() {
       const [
         { data: services }, { data: expenses }, { data: payrolls },
         { count: customerCount }, { count: serviceCount }, { data: inventory },
-        { data: recentSvc }, { count: callCount }, { count: followCount },
-        { count: salesCount }, { count: deviceCount }, { data: incentives },
-        { count: empCount }, { data: recentCalls }, { data: recentFollowUps },
+        { data: recentSvc }, { data: calls }, { data: followUps },
+        { count: salesCount }, { data: devices }, { data: incentives },
+        { data: employees }, { data: recentCalls }, { data: recentFollowUps },
+        { data: allCustomers },
       ] = await Promise.all([
         supabase.from('service_records').select('*').gte('service_date', startDate),
         supabase.from('expenses').select('*').gte('expense_date', startDate),
@@ -48,14 +52,15 @@ export default function Dashboard() {
         supabase.from('service_records').select('*', { count: 'exact', head: true }),
         supabase.from('inventory_items').select('*'),
         supabase.from('service_records').select('*').order('service_date', { ascending: false }).limit(5),
-        supabase.from('call_records').select('*', { count: 'exact', head: true }),
-        supabase.from('follow_ups').select('*', { count: 'exact', head: true }),
+        supabase.from('call_records').select('*, employee:employees(id,name,department)'),
+        supabase.from('follow_ups').select('*'),
         supabase.from('sales_activities').select('*', { count: 'exact', head: true }),
-        supabase.from('device_receipts').select('*', { count: 'exact', head: true }),
-        supabase.from('incentives').select('*'),
-        supabase.from('employees').select('*', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('device_receipts').select('*'),
+        supabase.from('incentives').select('*, employee:employees(id,name,department)'),
+        supabase.from('employees').select('*').eq('is_active', true),
         supabase.from('call_records').select('*, employee:employees(name)').order('created_at', { ascending: false }).limit(5),
         supabase.from('follow_ups').select('*, employee:employees(name), customer:customers(name)').order('created_at', { ascending: false }).limit(5),
+        supabase.from('customers').select('*'),
       ])
 
       const totalRevenue = services?.reduce((sum, s) => sum + (parseFloat(s.amount) || 0), 0) || 0
@@ -64,16 +69,55 @@ export default function Dashboard() {
       const totalIncentives = incentives?.reduce((sum, i) => sum + (i.amount || 0), 0) || 0
       const lowStockItems = inventory?.filter(i => i.current_stock <= i.min_stock_level).map(i => ({ name: i.name, current_stock: i.current_stock, min_stock_level: i.min_stock_level })) || []
 
+      // Orders stats
+      const allCusts = allCustomers || []
+      const ordersReceived = allCusts.filter(c => c.source === 'call_center').length
+      const ordersArrived = allCusts.filter(c => ['arrived', 'device_received', 'in_repair', 'completed', 'delivered'].includes(c.status)).length
+      const ordersInRepair = (devices || []).filter(d => ['in_diagnosis', 'in_repair'].includes(d.status)).length
+      const ordersCompleted = (devices || []).filter(d => ['repaired', 'delivered_to_customer'].includes(d.status)).length
+
+      // Employee performance
+      const empPerf = (employees || [])
+        .filter(e => ['call_center', 'follow_up', 'sales', 'reception', 'delivery'].includes(e.department || ''))
+        .map(emp => {
+          const empCalls = (calls || []).filter(c => c.employee_id === emp.id).length
+          const empRegistered = allCusts.filter(c => c.assigned_call_center_employee === emp.id).length
+          const empArrived = allCusts.filter(c => c.assigned_call_center_employee === emp.id && c.status !== 'new' && c.status !== 'contacted' && c.status !== 'follow_up').length
+          const empIncentives = (incentives || []).filter(i => i.employee_id === emp.id).reduce((s, i) => s + (i.amount || 0), 0)
+          return { name: emp.name, department: emp.department || '', calls: empCalls, registered: empRegistered, arrived: empArrived, incentives: empIncentives }
+        })
+        .sort((a, b) => b.incentives - a.incentives)
+
+      // Department stats
+      const deptLabels: Record<string, { label: string; color: string }> = {
+        call_center: { label: 'الكول سنتر', color: 'text-green-600' },
+        follow_up: { label: 'المتابعة', color: 'text-sky-600' },
+        sales: { label: 'المبيعات', color: 'text-purple-600' },
+        maintenance: { label: 'الصيانة', color: 'text-amber-600' },
+        reception: { label: 'الاستقبال', color: 'text-pink-600' },
+        delivery: { label: 'التوصيل', color: 'text-orange-600' },
+        hr: { label: 'الموارد البشرية', color: 'text-indigo-600' },
+      }
+      const deptStats = Object.entries(deptLabels).map(([dept, info]) => ({
+        department: dept,
+        label: info.label,
+        count: (employees || []).filter(e => e.department === dept).length,
+        color: info.color,
+      })).filter(d => d.count > 0)
+
       setStats({
         totalRevenue, totalExpenses: totalExpenses + totalPayroll,
         netProfit: totalRevenue - totalExpenses - totalPayroll - totalIncentives,
         totalCustomers: customerCount || 0, totalServices: serviceCount || 0,
         inventoryCount: inventory?.length || 0, lowStockItems,
-        totalCalls: callCount || 0, totalFollowUps: followCount || 0,
-        totalSales: salesCount || 0, totalDevices: deviceCount || 0,
-        totalIncentives, totalEmployees: empCount || 0,
+        totalCalls: (calls || []).length, totalFollowUps: (followUps || []).length,
+        totalSales: salesCount || 0, totalDevices: (devices || []).length,
+        totalIncentives, totalEmployees: (employees || []).length,
+        ordersReceived, ordersArrived, ordersInRepair, ordersCompleted,
         recentCalls: recentCalls || [], recentFollowUps: recentFollowUps || [],
         recentServices: recentSvc?.map(s => ({ customer_name: s.customer_name || 'غير محدد', device_type: s.device_type || '-', amount: s.amount, status: s.service_type, service_date: s.service_date })) || [],
+        employeePerformance: empPerf,
+        departmentStats: deptStats,
       })
     } catch (error) { console.error('Error:', error) }
     finally { setLoading(false) }
@@ -93,8 +137,8 @@ export default function Dashboard() {
           <LayoutDashboard className="h-7 w-7 text-white" />
         </div>
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900">أهلاً بك، أدمن</h1>
-          <p className="text-slate-500 font-medium mt-1">إليك ملخص أداء شركة Trade For Egypt</p>
+          <h1 className="text-3xl font-extrabold text-slate-900">لوحة تحكم الأدمن</h1>
+          <p className="text-slate-500 font-medium mt-1">نظرة شاملة على أداء شركة Trade For Egypt</p>
         </div>
       </div>
 
@@ -134,6 +178,47 @@ export default function Dashboard() {
             ))}
           </div>
 
+          {/* Orders Pipeline */}
+          <Card className="mb-8 shadow-md">
+            <CardHeader className="px-6 pt-5 pb-0 flex items-center gap-2">
+              <Target className="h-5 w-5 text-indigo-500" />
+              <h3 className="font-extrabold text-slate-900">مسار الأوردرات</h3>
+            </CardHeader>
+            <CardBody className="px-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 bg-blue-50 rounded-xl text-center">
+                  <Phone className="h-6 w-6 text-blue-500 mx-auto mb-2" />
+                  <p className="text-[10px] font-bold text-slate-500">أوردرات مستقبلة (كول سنتر)</p>
+                  <p className="text-2xl font-extrabold text-blue-600">{stats.ordersReceived}</p>
+                </div>
+                <div className="p-4 bg-green-50 rounded-xl text-center">
+                  <UserCheck className="h-6 w-6 text-green-500 mx-auto mb-2" />
+                  <p className="text-[10px] font-bold text-slate-500">جاءوا للشركة</p>
+                  <p className="text-2xl font-extrabold text-green-600">{stats.ordersArrived}</p>
+                </div>
+                <div className="p-4 bg-amber-50 rounded-xl text-center">
+                  <Wrench className="h-6 w-6 text-amber-500 mx-auto mb-2" />
+                  <p className="text-[10px] font-bold text-slate-500">قيد الصيانة</p>
+                  <p className="text-2xl font-extrabold text-amber-600">{stats.ordersInRepair}</p>
+                </div>
+                <div className="p-4 bg-emerald-50 rounded-xl text-center">
+                  <CheckCircle className="h-6 w-6 text-emerald-500 mx-auto mb-2" />
+                  <p className="text-[10px] font-bold text-slate-500">مكتمل / تم التسليم</p>
+                  <p className="text-2xl font-extrabold text-emerald-600">{stats.ordersCompleted}</p>
+                </div>
+              </div>
+              {stats.ordersReceived > 0 && (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="font-semibold text-slate-500">نسبة التحويل (من الكول سنتر للشركة)</span>
+                    <span className="font-extrabold text-indigo-600">{Math.round((stats.ordersArrived / stats.ordersReceived) * 100)}%</span>
+                  </div>
+                  <Progress value={Math.round((stats.ordersArrived / stats.ordersReceived) * 100)} color="primary" size="md" />
+                </div>
+              )}
+            </CardBody>
+          </Card>
+
           {/* Activity Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-8">
             {[
@@ -157,6 +242,65 @@ export default function Dashboard() {
               </Card>
             ))}
           </div>
+
+          {/* Employee Performance */}
+          <Card className="mb-8 shadow-md">
+            <CardHeader className="px-6 pt-5 pb-0 flex items-center gap-2">
+              <Users className="h-5 w-5 text-violet-500" />
+              <h3 className="font-extrabold text-slate-900">أداء الموظفين</h3>
+            </CardHeader>
+            <CardBody className="px-6">
+              {stats.employeePerformance.length === 0 ? (
+                <p className="text-center text-slate-400 py-4">لا توجد بيانات</p>
+              ) : (
+                <div className="space-y-3">
+                  {stats.employeePerformance.slice(0, 10).map((emp, i) => {
+                    const deptLabels: Record<string, string> = {
+                      call_center: 'كول سنتر', follow_up: 'متابعة', sales: 'مبيعات',
+                      reception: 'استقبال', delivery: 'توصيل', maintenance: 'صيانة', hr: 'HR',
+                    }
+                    return (
+                      <div key={i} className={`p-3 rounded-xl border ${i === 0 ? 'bg-gradient-to-l from-amber-50 to-yellow-50 border-amber-200' : 'bg-slate-50 border-slate-100'}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            {i === 0 && <span>🏆</span>}
+                            <span className="font-extrabold text-sm">{emp.name}</span>
+                            <Chip size="sm" variant="flat" color="default" className="font-semibold text-[9px]">{deptLabels[emp.department] || emp.department}</Chip>
+                          </div>
+                          <Chip size="sm" variant="flat" color="success" className="font-bold">
+                            {formatCurrency(emp.incentives)}
+                          </Chip>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+                          <div><span className="text-slate-500">مكالمات:</span> <span className="font-extrabold text-green-600">{emp.calls}</span></div>
+                          <div><span className="text-slate-500">عملاء مسجلين:</span> <span className="font-extrabold text-blue-600">{emp.registered}</span></div>
+                          <div><span className="text-slate-500">جاءوا للشركة:</span> <span className="font-extrabold text-emerald-600">{emp.arrived}</span></div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </CardBody>
+          </Card>
+
+          {/* Department Distribution */}
+          <Card className="mb-8 shadow-md">
+            <CardHeader className="px-6 pt-5 pb-0 flex items-center gap-2">
+              <FileBarChart className="h-5 w-5 text-indigo-500" />
+              <h3 className="font-extrabold text-slate-900">توزيع الموظفين حسب الأقسام</h3>
+            </CardHeader>
+            <CardBody className="px-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                {stats.departmentStats.map((dept, i) => (
+                  <div key={i} className="p-3 bg-slate-50 rounded-xl text-center">
+                    <p className="text-[10px] font-bold text-slate-500">{dept.label}</p>
+                    <p className={`text-xl font-extrabold ${dept.color}`}>{dept.count}</p>
+                  </div>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
 
           {/* Low Stock Alert */}
           {stats.lowStockItems.length > 0 && (

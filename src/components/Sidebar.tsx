@@ -6,7 +6,7 @@ import { useState } from 'react'
 import {
   LayoutDashboard, Package, ShoppingCart, Receipt, Wrench,
   Users, Wallet, UserCircle, Truck, FileBarChart, Settings, LogOut,
-  Phone, PhoneForwarded, TrendingUp, Gift, ClipboardList, ChevronDown, ChevronLeft
+  Phone, PhoneForwarded, TrendingUp, Gift, ClipboardList, ChevronDown, ChevronLeft, UserCheck
 } from 'lucide-react'
 
 const navSections = [
@@ -23,6 +23,7 @@ const navSections = [
       { href: '/follow-up', label: 'المتابعة', icon: PhoneForwarded, color: 'bg-sky-500' },
       { href: '/sales', label: 'المبيعات', icon: TrendingUp, color: 'bg-purple-500' },
       { href: '/customers', label: 'العملاء', icon: UserCircle, color: 'bg-teal-500' },
+      { href: '/reception', label: 'الاستقبال', icon: UserCheck, color: 'bg-pink-500' },
       { href: '/device-receipts', label: 'استلام الأجهزة', icon: ClipboardList, color: 'bg-lime-600' },
     ]
   },
