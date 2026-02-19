@@ -149,22 +149,22 @@ export default function InvoicesPage() {
         <SearchInput value={search} onChange={setSearch} placeholder="بحث برقم الفاتورة أو اسم العميل..." />
       </PageHeader>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-          <p className="text-[10px] font-bold text-slate-400 mb-0.5">إجمالي الفواتير</p>
-          <p className="text-xl font-black text-indigo-600">{filtered.length}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">إجمالي الفواتير</p>
+          <p className="text-lg sm:text-xl font-black text-indigo-600">{filtered.length}</p>
         </CardBody></Card>
-        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-          <p className="text-[10px] font-bold text-slate-400 mb-0.5">إجمالي المبالغ</p>
-          <p className="text-xl font-black text-blue-600">{formatCurrency(totalAmount)}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">إجمالي المبالغ</p>
+          <p className="text-lg sm:text-xl font-black text-blue-600">{formatCurrency(totalAmount)}</p>
         </CardBody></Card>
-        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-          <p className="text-[10px] font-bold text-slate-400 mb-0.5">المحصّل</p>
-          <p className="text-xl font-black text-green-600">{formatCurrency(totalPaid)}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">المحصّل</p>
+          <p className="text-lg sm:text-xl font-black text-green-600">{formatCurrency(totalPaid)}</p>
         </CardBody></Card>
-        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-          <p className="text-[10px] font-bold text-slate-400 mb-0.5">المستحق</p>
-          <p className="text-xl font-black text-red-600">{formatCurrency(totalUnpaid)}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">المستحق</p>
+          <p className="text-lg sm:text-xl font-black text-red-600">{formatCurrency(totalUnpaid)}</p>
         </CardBody></Card>
       </div>
 
@@ -189,7 +189,8 @@ export default function InvoicesPage() {
           <FileText className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد فواتير</p>
         </CardBody></Card>
       ) : (
-        <Card className="shadow-md border border-slate-100">
+        <>
+        <Card className="shadow-md border border-slate-100 hidden sm:block">
           <div className="flex items-center justify-end px-4 pt-3 pb-1">
             <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 transition-all">
               <Download className="h-3.5 w-3.5" />تصدير CSV
@@ -256,7 +257,52 @@ export default function InvoicesPage() {
             </table>
           </CardBody>
         </Card>
-      )}
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden space-y-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-500">{filtered.length} فاتورة</span>
+              <button onClick={handleExport} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-emerald-50 text-emerald-600 border-emerald-200">
+                <Download className="h-3 w-3" />تصدير
+              </button>
+            </div>
+            {filtered.map((inv) => {
+              const cust = inv.customer as any
+              const cfg = statusConfig[inv.status] || statusConfig.unpaid
+              return (
+                <div key={inv.id} className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-extrabold text-indigo-600 text-xs">{inv.invoice_number || `#${inv.id}`}</span>
+                      </div>
+                      <p className="font-extrabold text-sm text-slate-800 mt-0.5">{cust?.name || '-'}</p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => viewInvoice(inv)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600"><Eye className="h-3.5 w-3.5" /></button>
+                      {inv.status !== 'paid' && inv.status !== 'cancelled' && (
+                        <button onClick={() => openPay(inv)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-green-50 text-green-600"><CreditCard className="h-3.5 w-3.5" /></button>
+                      )}
+                      <button onClick={() => printInvoice(inv)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-purple-50 text-purple-600"><Printer className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => handleDelete(inv.id)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-red-50 text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+                    <span className="font-extrabold text-blue-600">{formatCurrency(inv.total_amount)}</span>
+                    <span className="text-green-600 font-bold">مدفوع: {formatCurrency(inv.paid_amount)}</span>
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${cfg.color}`}>{cfg.label}</span>
+                    <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-600 text-[10px] font-bold">{typeLabels[inv.invoice_type] || inv.invoice_type}</span>
+                    <span className="text-slate-400">{inv.invoice_date || ''}</span>
+                  </div>
+                </div>
+              )
+            })}
+            <div className="bg-indigo-50 rounded-xl p-2.5 text-center space-y-0.5">
+              <span className="text-xs font-extrabold text-blue-800 block">الإجمالي: {formatCurrency(totalAmount)}</span>
+              <span className="text-xs font-extrabold text-green-800 block">المدفوع: {formatCurrency(totalPaid)}</span>
+            </div>
+          </div>
+        </>)}
 
       {/* Create/Edit Invoice Modal */}
       <CustomModal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editItem ? 'تعديل فاتورة' : 'إنشاء فاتورة جديدة'} size="lg" footer={
@@ -264,7 +310,7 @@ export default function InvoicesPage() {
       }>
         <div className="flex flex-col gap-4">
           <FormSelect label="العميل" value={String(formData.customer_id)} onChange={(v) => setFormData({...formData, customer_id: parseInt(v) || 0})} required options={[{ value: '0', label: 'اختر العميل...' }, ...customers.map(c => ({ value: String(c.id), label: `${c.name} ${c.phone ? `(${c.phone})` : ''} ${c.company_name ? `- ${c.company_name}` : ''}` }))]} />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <FormSelect label="نوع الفاتورة" value={formData.invoice_type} onChange={(v) => setFormData({...formData, invoice_type: v})} options={[{ value: 'service', label: 'صيانة' }, { value: 'sales', label: 'بيع' }, { value: 'supply', label: 'توريد' }, { value: 'exchange', label: 'استبدال' }, { value: 'other', label: 'أخرى' }]} />
             <FormInput label="تاريخ الفاتورة" type="date" value={formData.invoice_date} onChange={(v) => setFormData({...formData, invoice_date: v})} />
             <FormInput label="تاريخ الاستحقاق" type="date" value={formData.due_date} onChange={(v) => setFormData({...formData, due_date: v})} />
@@ -292,7 +338,7 @@ export default function InvoicesPage() {
               <div className="flex justify-between text-lg pt-2 border-t border-indigo-200"><span className="font-bold text-indigo-700">الإجمالي:</span><span className="font-extrabold text-indigo-700">{formatCurrency(totalCalc)}</span></div>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <FormSelect label="طريقة الدفع" value={formData.payment_method} onChange={(v) => setFormData({...formData, payment_method: v})} options={[{ value: 'CASH', label: 'نقدي' }, { value: 'CARD', label: 'بطاقة' }, { value: 'TRANSFER', label: 'تحويل بنكي' }]} />
           </div>
           <FormTextarea label="ملاحظات" value={formData.notes} onChange={(v) => setFormData({...formData, notes: v})} />

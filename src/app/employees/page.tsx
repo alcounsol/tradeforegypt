@@ -72,7 +72,7 @@ export default function Employees() {
       </PageHeader>
 
       {/* Department Filter */}
-      <div className="flex flex-wrap gap-3 mb-6">
+      <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4 sm:mb-6">
         <button onClick={() => setFilterDept('all')} className={filterDept === 'all' ? 'filter-btn-active filter-btn-active-primary' : 'filter-btn'}>
           الكل ({employees.length})
         </button>
@@ -132,11 +132,11 @@ export default function Employees() {
       }>
         <div className="flex flex-col gap-4">
           <FormInput label="الاسم" value={formData.name} onChange={(v) => setFormData({...formData, name: v})} required />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <FormInput label="الوظيفة" value={formData.job_title} onChange={(v) => setFormData({...formData, job_title: v})} />
             <FormSelect label="القسم" value={formData.department} onChange={(v) => setFormData({...formData, department: v})} options={Object.entries(departmentLabels).map(([k, v]) => ({ value: k, label: v }))} />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <FormInput label="رقم الهاتف" value={formData.phone} onChange={(v) => setFormData({...formData, phone: v})} type="tel" />
             <FormInput label="الراتب الأساسي" type="number" value={formData.base_salary} onChange={(v) => setFormData({...formData, base_salary: parseFloat(v) || 0})} />
           </div>

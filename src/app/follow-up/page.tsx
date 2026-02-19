@@ -88,11 +88,11 @@ export default function FollowUpPage() {
         <SearchInput value={search} onChange={setSearch} placeholder="بحث عن عميل..." />
       </PageHeader>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3 mb-4 sm:mb-6">
         {Object.entries(statusConfig).map(([key, cfg]) => (
-          <Card key={key} className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-            <p className="text-[10px] font-bold text-slate-400 mb-0.5">{cfg.label}</p>
-            <p className="text-xl font-black text-slate-800">{records.filter(r => r.status === key).length}</p>
+          <Card key={key} className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">{cfg.label}</p>
+            <p className="text-lg sm:text-xl font-black text-slate-800">{records.filter(r => r.status === key).length}</p>
           </CardBody></Card>
         ))}
       </div>
@@ -104,7 +104,8 @@ export default function FollowUpPage() {
           <PhoneForwarded className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد متابعات</p>
         </CardBody></Card>
       ) : (
-        <Card className="shadow-md border border-slate-100">
+        <>
+        <Card className="shadow-md border border-slate-100 hidden sm:block">
           <div className="flex items-center justify-end px-4 pt-3 pb-1">
             <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 transition-all">
               <Download className="h-3.5 w-3.5" />تصدير CSV
@@ -158,7 +159,42 @@ export default function FollowUpPage() {
             </table>
           </CardBody>
         </Card>
-      )}
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden space-y-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-500">{filtered.length} متابعة</span>
+              <button onClick={handleExport} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-emerald-50 text-emerald-600 border-emerald-200">
+                <Download className="h-3 w-3" />تصدير
+              </button>
+            </div>
+            {filtered.map((r) => {
+              const cust = r.customer as any
+              const emp = r.employee as any
+              const cfg = statusConfig[r.status] || statusConfig.pending
+              return (
+                <div key={r.id} className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-extrabold text-sm text-slate-800">{cust?.name || '-'}</p>
+                      {cust?.phone && <p className="text-[10px] text-slate-400">{cust.phone}</p>}
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => openEdit(r)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600"><Edit className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => handleDelete(r.id)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-red-50 text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${cfg.color}`}>{cfg.label}</span>
+                    {emp?.name && <span className="text-slate-500">{emp.name}</span>}
+                    <span className="text-slate-400">{r.follow_up_date ? formatDate(r.follow_up_date) : ''}</span>
+                  </div>
+                  {r.result && <p className="mt-1 text-[11px] text-slate-500 truncate">{r.result}</p>}
+                </div>
+              )
+            })}
+          </div>
+        </>)}
 
       <CustomModal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editItem ? 'تعديل متابعة' : 'إضافة متابعة جديدة'} footer={
         <>
@@ -171,7 +207,7 @@ export default function FollowUpPage() {
             { value: '0', label: 'اختر العميل...' },
             ...customers.map(c => ({ value: String(c.id), label: `${c.name} ${c.phone ? `(${c.phone})` : ''} ${c.device_brand ? `- ${c.device_brand}` : ''}` }))
           ]} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <FormSelect label="موظف المتابعة" value={String(formData.employee_id)} onChange={(v) => setFormData({...formData, employee_id: parseInt(v) || 0})} options={[{ value: '0', label: 'اختر الموظف...' }, ...employees.map(e => ({ value: String(e.id), label: e.name }))]} />
             <FormSelect label="نوع المتابعة" value={formData.follow_up_type} onChange={(v) => setFormData({...formData, follow_up_type: v as any})} options={[{ value: 'call', label: 'اتصال هاتفي' }, { value: 'visit', label: 'زيارة' }, { value: 'message', label: 'رسالة' }]} />
           </div>

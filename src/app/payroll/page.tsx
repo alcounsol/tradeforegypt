@@ -101,17 +101,17 @@ export default function Payroll() {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-          <p className="text-[10px] font-bold text-slate-400 mb-0.5">إجمالي الرواتب</p>
-          <p className="text-xl font-black text-rose-600">{formatCurrency(totalNet)}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">إجمالي الرواتب</p>
+          <p className="text-lg sm:text-xl font-black text-rose-600">{formatCurrency(totalNet)}</p>
         </CardBody></Card>
-        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-          <p className="text-[10px] font-bold text-slate-400 mb-0.5">تم الصرف</p>
-          <p className="text-xl font-black text-green-600">{formatCurrency(totalPaid)}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">تم الصرف</p>
+          <p className="text-lg sm:text-xl font-black text-green-600">{formatCurrency(totalPaid)}</p>
         </CardBody></Card>
-        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-          <p className="text-[10px] font-bold text-slate-400 mb-0.5">لم يتم الصرف</p>
-          <p className="text-xl font-black text-red-600">{formatCurrency(totalUnpaid)}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">لم يتم الصرف</p>
+          <p className="text-lg sm:text-xl font-black text-red-600">{formatCurrency(totalUnpaid)}</p>
         </CardBody></Card>
       </div>
 
@@ -123,7 +123,8 @@ export default function Payroll() {
           <button onClick={generateAll} className="action-btn mt-3">إنشاء رواتب لجميع الموظفين</button>
         </CardBody></Card>
       ) : (
-        <Card className="shadow-md border border-slate-100">
+        <>
+        <Card className="shadow-md border border-slate-100 hidden sm:block">
           <div className="flex items-center justify-end px-4 pt-3 pb-1">
             <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 transition-all">
               <Download className="h-3.5 w-3.5" />تصدير CSV
@@ -182,7 +183,45 @@ export default function Payroll() {
             </table>
           </CardBody>
         </Card>
-      )}
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden space-y-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-500">{records.length} موظف</span>
+              <button onClick={handleExport} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-emerald-50 text-emerald-600 border-emerald-200">
+                <Download className="h-3 w-3" />تصدير
+              </button>
+            </div>
+            {records.map((r) => {
+              const emp = r.employee as any
+              return (
+                <div key={r.id} className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-extrabold text-sm text-slate-800">{emp?.name || '-'}</p>
+                      <p className="text-[10px] text-slate-400">الأساسي: {formatCurrency(r.base_salary)}</p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => openEdit(r)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600"><Edit className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => handleDelete(r.id)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-red-50 text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+                    <span className="font-extrabold text-rose-600">الصافي: {formatCurrency(r.net_paid)}</span>
+                    {r.bonus > 0 && <span className="text-green-600 font-bold">+{formatCurrency(r.bonus)}</span>}
+                    {r.deductions > 0 && <span className="text-red-600 font-bold">-{formatCurrency(r.deductions)}</span>}
+                    <button onClick={() => togglePaid(r)} className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${r.is_paid ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                      {r.is_paid ? 'تم الصرف' : 'لم يُصرف'}
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+            <div className="bg-rose-50 rounded-xl p-2.5 text-center">
+              <span className="text-xs font-extrabold text-rose-800">إجمالي الصافي: {formatCurrency(totalNet)}</span>
+            </div>
+          </div>
+        </>)}
 
       <CustomModal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editItem ? 'تعديل سجل راتب' : 'إضافة سجل راتب'} footer={
         <><ModalCancelButton label="إلغاء" onClick={() => setIsOpen(false)} /><ModalSubmitButton label={editItem ? 'تحديث' : 'إضافة'} onClick={handleSubmit} color="from-rose-500 to-rose-600" /></>

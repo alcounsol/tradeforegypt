@@ -117,10 +117,10 @@ export default function DeviceReceiptsPage() {
         <SearchInput value={search} onChange={setSearch} placeholder="بحث برقم التيكت أو اسم العميل أو الهاتف..." />
       </PageHeader>
 
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-4 sm:mb-6">
         {Object.entries(statusConfig).map(([key, cfg]) => (
-          <Card key={key} className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-            <p className="text-[10px] font-bold text-slate-400">{cfg.label}</p>
+          <Card key={key} className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400">{cfg.label}</p>
             <p className="text-lg font-black text-slate-800">{records.filter(r => r.status === key).length}</p>
           </CardBody></Card>
         ))}
@@ -142,7 +142,8 @@ export default function DeviceReceiptsPage() {
           <ClipboardList className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد أجهزة مستلمة</p>
         </CardBody></Card>
       ) : (
-        <Card className="shadow-md border border-slate-100">
+        <>
+        <Card className="shadow-md border border-slate-100 hidden sm:block">
           <div className="flex items-center justify-end px-4 pt-3 pb-1">
             <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 transition-all">
               <Download className="h-3.5 w-3.5" />تصدير CSV
@@ -196,7 +197,43 @@ export default function DeviceReceiptsPage() {
             </table>
           </CardBody>
         </Card>
-      )}
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden space-y-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-500">{filtered.length} جهاز</span>
+              <button onClick={handleExport} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-emerald-50 text-emerald-600 border-emerald-200">
+                <Download className="h-3 w-3" />تصدير
+              </button>
+            </div>
+            {filtered.map((r) => {
+              const cust = r.customer as any
+              const cfg = statusConfig[r.status] || statusConfig.received
+              return (
+                <div key={r.id} className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-mono font-bold">#{String(r.id).padStart(5, '0')}</span>
+                        <p className="font-extrabold text-sm text-slate-800">{cust?.name || '-'}</p>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5">{r.device_brand} - {r.device_name}</p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => openTicket(r)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600"><Eye className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => openEdit(r)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600"><Edit className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => handleDelete(r.id)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-red-50 text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${cfg.color}`}>{cfg.label}</span>
+                    <span className="text-slate-400">{r.receipt_date ? formatDate(r.receipt_date) : ''}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </>)}
 
       {/* Add/Edit Modal */}
       <CustomModal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editItem ? 'تعديل بيانات الجهاز' : 'تسجيل جهاز جديد'} footer={
@@ -245,7 +282,7 @@ export default function DeviceReceiptsPage() {
           </div>
           <FormTextarea label="وصف العطل" value={formData.fault_description} onChange={(v) => setFormData({...formData, fault_description: v})} />
           <FormTextarea label="حالة الجهاز عند الاستلام" value={formData.condition_notes} onChange={(v) => setFormData({...formData, condition_notes: v})} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <FormSelect label="المندوب (أحضر الجهاز)" value={String(formData.delivered_by)} onChange={(v) => setFormData({...formData, delivered_by: parseInt(v) || 0})} options={[{ value: '0', label: 'العميل أحضر الجهاز بنفسه' }, ...deliveryEmployees.map(e => ({ value: String(e.id), label: e.name }))]} />
             <FormSelect label="موظف الاستقبال" value={String(formData.received_by)} onChange={(v) => setFormData({...formData, received_by: parseInt(v) || 0})} options={[{ value: '0', label: 'اختر الموظف...' }, ...receptionEmployees.map(e => ({ value: String(e.id), label: e.name }))]} />
           </div>

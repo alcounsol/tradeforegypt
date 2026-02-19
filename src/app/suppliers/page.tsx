@@ -55,13 +55,13 @@ export default function Suppliers() {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-          <p className="text-[10px] font-bold text-slate-400 mb-0.5">إجمالي الموردين</p>
-          <p className="text-xl font-black text-orange-600">{suppliers.length}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">إجمالي الموردين</p>
+          <p className="text-lg sm:text-xl font-black text-orange-600">{suppliers.length}</p>
         </CardBody></Card>
-        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-          <p className="text-[10px] font-bold text-slate-400 mb-0.5">نتائج البحث</p>
-          <p className="text-xl font-black text-blue-600">{filtered.length}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">نتائج البحث</p>
+          <p className="text-lg sm:text-xl font-black text-blue-600">{filtered.length}</p>
         </CardBody></Card>
       </div>
 
@@ -72,7 +72,8 @@ export default function Suppliers() {
           <Truck className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا يوجد موردين</p>
         </CardBody></Card>
       ) : (
-        <Card className="shadow-md border border-slate-100">
+        <>
+        <Card className="shadow-md border border-slate-100 hidden sm:block">
           <div className="flex items-center justify-end px-4 pt-3 pb-1">
             <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 transition-all">
               <Download className="h-3.5 w-3.5" />تصدير CSV
@@ -120,7 +121,36 @@ export default function Suppliers() {
             </table>
           </CardBody>
         </Card>
-      )}
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden space-y-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-500">{filtered.length} مورد</span>
+              <button onClick={handleExport} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-emerald-50 text-emerald-600 border-emerald-200">
+                <Download className="h-3 w-3" />تصدير
+              </button>
+            </div>
+            {filtered.map((s) => (
+              <div key={s.id} className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-extrabold text-sm text-slate-800">{s.name}</p>
+                    {s.contact_person && <p className="text-[10px] text-slate-400">{s.contact_person}</p>}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button onClick={() => openEdit(s)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600"><Edit className="h-3.5 w-3.5" /></button>
+                    <button onClick={() => handleDelete(s.id)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-red-50 text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                  {s.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{s.phone}</span>}
+                  {s.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{s.email}</span>}
+                </div>
+                {s.address && <p className="mt-1 text-[11px] text-slate-400 truncate">{s.address}</p>}
+              </div>
+            ))}
+          </div>
+        </>)}
 
       <CustomModal isOpen={isOpen} onClose={onClose} title={editItem ? 'تعديل مورد' : 'إضافة مورد جديد'} footer={
         <>
@@ -131,7 +161,7 @@ export default function Suppliers() {
         <div className="flex flex-col gap-4">
           <FormInput label="اسم المورد" value={formData.name} onChange={(v) => setFormData({...formData, name: v})} required />
           <FormInput label="جهة الاتصال" value={formData.contact_person} onChange={(v) => setFormData({...formData, contact_person: v})} />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <FormInput label="رقم الهاتف" value={formData.phone} onChange={(v) => setFormData({...formData, phone: v})} type="tel" />
             <FormInput label="البريد الإلكتروني" value={formData.email} onChange={(v) => setFormData({...formData, email: v})} type="email" />
           </div>

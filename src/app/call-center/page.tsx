@@ -142,7 +142,7 @@ export default function CallCenter() {
         <SearchInput value={search} onChange={setSearch} placeholder="بحث بالاسم أو الهاتف..." />
       </PageHeader>
 
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-4 sm:mb-6">
         {[
           { label: 'إجمالي المكالمات', value: records.length, color: 'text-green-600' },
           { label: 'مكالمات اليوم', value: todayCalls, color: 'text-blue-600' },
@@ -151,8 +151,8 @@ export default function CallCenter() {
           { label: 'نسبة التحويل', value: `${conversionRate}%`, color: 'text-amber-600' },
           { label: 'طلبات صيانة', value: records.filter(r => r.request_type === 'maintenance').length, color: 'text-purple-600' },
         ].map((stat, i) => (
-          <Card key={i} className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-            <p className="text-[10px] font-bold text-slate-400 mb-0.5">{stat.label}</p>
+          <Card key={i} className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">{stat.label}</p>
             <p className={`text-xl font-black ${stat.color}`}>{stat.value}</p>
           </CardBody></Card>
         ))}
@@ -171,7 +171,8 @@ export default function CallCenter() {
           <Phone className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد مكالمات مسجلة</p>
         </CardBody></Card>
       ) : (
-        <Card className="shadow-md border border-slate-100">
+        <>
+        <Card className="shadow-md border border-slate-100 hidden sm:block">
           <div className="flex items-center justify-end px-4 pt-3 pb-1">
             <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 transition-all">
               <Download className="h-3.5 w-3.5" />تصدير CSV
@@ -246,7 +247,46 @@ export default function CallCenter() {
             </table>
           </CardBody>
         </Card>
-      )}
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden space-y-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-500">{filtered.length} مكالمة</span>
+              <button onClick={handleExport} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-emerald-50 text-emerald-600 border-emerald-200">
+                <Download className="h-3 w-3" />تصدير
+              </button>
+            </div>
+            {filtered.map((r) => {
+              const custStatus = getCustomerStatus(r)
+              const arrived = custStatus && custStatus !== 'new' && custStatus !== 'contacted' && custStatus !== 'follow_up'
+              return (
+                <div key={r.id} className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        {r.customer_type === 'company' ? <Building2 className="h-3.5 w-3.5 text-purple-500" /> : <User className="h-3.5 w-3.5 text-blue-500" />}
+                        <p className="font-extrabold text-sm text-slate-800">{r.customer_name}</p>
+                      </div>
+                      {r.customer_phone && <p className="text-[10px] text-slate-400 mt-0.5">{r.customer_phone}</p>}
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => openEdit(r)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600"><Edit className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => handleDelete(r.id)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-red-50 text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${r.request_type === 'maintenance' ? 'bg-amber-50 text-amber-600' : r.request_type === 'supply' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'}`}>
+                      {r.request_type === 'maintenance' ? 'صيانة' : r.request_type === 'supply' ? 'توريد' : 'صيانة وتوريد'}
+                    </span>
+                    {arrived && <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[10px] font-bold">جاء للشركة</span>}
+                    {r.device_brand && <span className="text-slate-500">{r.device_brand}</span>}
+                    <span className="text-slate-400">{r.call_date ? formatDate(r.call_date) : ''}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </>)}
 
       {/* Add/Edit Modal */}
       <CustomModal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editItem ? 'تعديل مكالمة' : 'تسجيل مكالمة جديدة'} footer={

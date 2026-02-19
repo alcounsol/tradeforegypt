@@ -120,15 +120,15 @@ export default function ReceptionPage() {
         <SearchInput value={search} onChange={setSearch} placeholder="بحث بالاسم أو رقم الهاتف..." />
       </PageHeader>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
         {[
           { label: 'إجمالي العملاء المسجلين (كول سنتر)', value: stats.totalRegistered, color: 'text-green-600' },
           { label: 'وصلوا الشركة اليوم', value: stats.todayArrivals, color: 'text-blue-600' },
           { label: 'إجمالي الأجهزة المستلمة', value: stats.totalDevicesReceived, color: 'text-amber-600' },
           { label: 'أجهزة مستلمة اليوم', value: stats.todayDevices, color: 'text-purple-600' },
         ].map((stat, i) => (
-          <Card key={i} className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-            <p className="text-[10px] font-bold text-slate-400 mb-0.5">{stat.label}</p>
+          <Card key={i} className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">{stat.label}</p>
             <p className={`text-xl font-black ${stat.color}`}>{stat.value}</p>
           </CardBody></Card>
         ))}
@@ -150,7 +150,8 @@ export default function ReceptionPage() {
           <UserCheck className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا يوجد عملاء</p>
         </CardBody></Card>
       ) : (
-        <Card className="shadow-md border border-slate-100">
+        <>
+        <Card className="shadow-md border border-slate-100 hidden sm:block">
           <div className="flex items-center justify-end px-4 pt-3 pb-1">
             <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 transition-all">
               <Download className="h-3.5 w-3.5" />تصدير CSV
@@ -221,7 +222,45 @@ export default function ReceptionPage() {
             </table>
           </CardBody>
         </Card>
-      )}
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden space-y-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-500">{filtered.length} عميل</span>
+            </div>
+            {filtered.map((c) => (
+              <div key={c.id} className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      {c.customer_type === 'company' ? <Building2 className="h-3.5 w-3.5 text-purple-500" /> : <User className="h-3.5 w-3.5 text-blue-500" />}
+                      <p className="font-extrabold text-sm text-slate-800">{c.name}</p>
+                    </div>
+                    {c.phone && <p className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone}</p>}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button onClick={() => openDetail(c)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600"><Eye className="h-3.5 w-3.5" /></button>
+                    {c.status === 'new' && (
+                      <button onClick={() => markAsArrived(c)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-green-50 text-green-600"><UserCheck className="h-3.5 w-3.5" /></button>
+                    )}
+                    {(c.status === 'arrived' || c.status === 'new') && c.request_type !== 'supply' && (
+                      <button onClick={() => openDeviceReceipt(c)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600"><ArrowDownToLine className="h-3.5 w-3.5" /></button>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${customerStatusColors[c.status] || 'bg-slate-50 text-slate-600 border-slate-200'}`}>
+                    {customerStatusLabels[c.status] || c.status}
+                  </span>
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${c.request_type === 'maintenance' ? 'bg-amber-50 text-amber-600' : c.request_type === 'supply' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'}`}>
+                    {c.request_type === 'maintenance' ? 'صيانة' : c.request_type === 'supply' ? 'توريد' : 'صيانة وتوريد'}
+                  </span>
+                  {c.device_brand && <span className="text-slate-500">{c.device_brand}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>)}
 
       <CustomModal isOpen={isDeviceModalOpen} onClose={() => setIsDeviceModalOpen(false)} title={`تسجيل دخول جهاز - ${selectedCustomer?.name || ''}`} footer={
         <><ModalCancelButton label="إلغاء" onClick={() => setIsDeviceModalOpen(false)} /><ModalSubmitButton label="تسجيل دخول الجهاز" onClick={handleDeviceSubmit} color="from-amber-500 to-amber-600" /></>

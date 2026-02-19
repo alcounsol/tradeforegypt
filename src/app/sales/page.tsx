@@ -128,22 +128,22 @@ export default function SalesPage() {
         <SearchInput value={search} onChange={setSearch} placeholder="بحث عن عميل..." />
       </PageHeader>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-          <p className="text-[10px] font-bold text-slate-400 mb-0.5">إجمالي الأنشطة</p>
-          <p className="text-xl font-black text-purple-600">{records.length}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">إجمالي الأنشطة</p>
+          <p className="text-lg sm:text-xl font-black text-purple-600">{records.length}</p>
         </CardBody></Card>
-        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-          <p className="text-[10px] font-bold text-slate-400 mb-0.5">صفقات ناجحة</p>
-          <p className="text-xl font-black text-green-600">{records.filter(r => r.status === 'closed_won').length}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">صفقات ناجحة</p>
+          <p className="text-lg sm:text-xl font-black text-green-600">{records.filter(r => r.status === 'closed_won').length}</p>
         </CardBody></Card>
-        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-          <p className="text-[10px] font-bold text-slate-400 mb-0.5">قيد التفاوض</p>
-          <p className="text-xl font-black text-amber-600">{records.filter(r => r.status === 'negotiating').length}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">قيد التفاوض</p>
+          <p className="text-lg sm:text-xl font-black text-amber-600">{records.filter(r => r.status === 'negotiating').length}</p>
         </CardBody></Card>
-        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
-          <p className="text-[10px] font-bold text-slate-400 mb-0.5">إجمالي المبيعات</p>
-          <p className="text-xl font-black text-blue-600">{formatCurrency(totalWon)}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-2.5 sm:p-3 text-center">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5">إجمالي المبيعات</p>
+          <p className="text-lg sm:text-xl font-black text-blue-600">{formatCurrency(totalWon)}</p>
         </CardBody></Card>
       </div>
 
@@ -154,7 +154,8 @@ export default function SalesPage() {
           <TrendingUp className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد أنشطة بيع</p>
         </CardBody></Card>
       ) : (
-        <Card className="shadow-md border border-slate-100">
+        <>
+        <Card className="shadow-md border border-slate-100 hidden sm:block">
           <div className="flex items-center justify-end px-4 pt-3 pb-1">
             <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 transition-all">
               <Download className="h-3.5 w-3.5" />تصدير CSV
@@ -219,7 +220,52 @@ export default function SalesPage() {
             </table>
           </CardBody>
         </Card>
-      )}
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden space-y-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-500">{filtered.length} نشاط</span>
+              <button onClick={handleExport} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-emerald-50 text-emerald-600 border-emerald-200">
+                <Download className="h-3 w-3" />تصدير
+              </button>
+            </div>
+            {filtered.map((r) => {
+              const cust = r.customer as any
+              const emp = r.employee as any
+              const cfg = statusConfig[r.status] || statusConfig.pending
+              return (
+                <div key={r.id} className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-extrabold text-sm text-slate-800">{cust?.name || '-'}</p>
+                      {emp?.name && <p className="text-[10px] text-slate-400">{emp.name}</p>}
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {r.status === 'closed_won' && (
+                        invoiceCreated[r.id] ? (
+                          <span className="h-7 w-7 flex items-center justify-center rounded-lg bg-green-50 text-green-600"><CheckCircle className="h-3.5 w-3.5" /></span>
+                        ) : (
+                          <button onClick={() => manualCreateInvoice(r)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600"><FileText className="h-3.5 w-3.5" /></button>
+                        )
+                      )}
+                      <button onClick={() => openEdit(r)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600"><Edit className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => handleDelete(r.id)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-red-50 text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+                    <span className="font-extrabold text-purple-600">{formatCurrency(r.offered_amount || 0)}</span>
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${cfg.color}`}>{cfg.label}</span>
+                    <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-600 text-[10px] font-bold">{serviceLabels[r.service_offered || ''] || '-'}</span>
+                    <span className="text-slate-400">{r.activity_date ? formatDate(r.activity_date) : ''}</span>
+                  </div>
+                </div>
+              )
+            })}
+            <div className="bg-purple-50 rounded-xl p-2.5 text-center">
+              <span className="text-xs font-extrabold text-purple-800">الإجمالي: {formatCurrency(filtered.reduce((s, r) => s + (r.offered_amount || 0), 0))}</span>
+            </div>
+          </div>
+        </>)}
 
       <CustomModal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editItem ? 'تعديل نشاط بيع' : 'إضافة نشاط بيع جديد'} footer={
         <>
@@ -229,11 +275,11 @@ export default function SalesPage() {
       }>
         <div className="flex flex-col gap-4">
           <FormSelect label="العميل" value={String(formData.customer_id)} onChange={(v) => setFormData({...formData, customer_id: parseInt(v) || 0})} required options={[{ value: '0', label: 'اختر العميل...' }, ...customers.map(c => ({ value: String(c.id), label: `${c.name} ${c.phone ? `(${c.phone})` : ''}` }))]} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <FormSelect label="موظف المبيعات" value={String(formData.employee_id)} onChange={(v) => setFormData({...formData, employee_id: parseInt(v) || 0})} options={[{ value: '0', label: 'اختر الموظف...' }, ...employees.map(e => ({ value: String(e.id), label: e.name }))]} />
             <FormSelect label="نوع النشاط" value={formData.activity_type} onChange={(v) => setFormData({...formData, activity_type: v as any})} options={[{ value: 'call', label: 'اتصال' }, { value: 'visit', label: 'زيارة' }, { value: 'presentation', label: 'عرض تقديمي' }, { value: 'offer', label: 'عرض سعر' }]} />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <FormSelect label="الخدمة المعروضة" value={formData.service_offered} onChange={(v) => setFormData({...formData, service_offered: v as any})} options={[{ value: 'maintenance', label: 'صيانة' }, { value: 'supply', label: 'توريد' }, { value: 'sales', label: 'بيع أجهزة' }, { value: 'exchange', label: 'استبدال أجهزة' }]} />
             <FormSelect label="الحالة" value={formData.status} onChange={(v) => setFormData({...formData, status: v as any})} options={[{ value: 'pending', label: 'قيد الانتظار' }, { value: 'interested', label: 'مهتم' }, { value: 'negotiating', label: 'تفاوض' }, { value: 'closed_won', label: 'تم البيع' }, { value: 'closed_lost', label: 'خسارة' }]} />
           </div>

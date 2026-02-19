@@ -130,32 +130,32 @@ export default function Inventory() {
         <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1"><Box className="h-4 w-4 text-blue-500" /></div>
           <p className="text-[10px] font-bold text-slate-400 mb-0.5">إجمالي الأصناف</p>
-          <p className="text-xl font-black text-blue-600">{items.length}</p>
+          <p className="text-lg sm:text-xl font-black text-blue-600">{items.length}</p>
         </CardBody></Card>
         <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1"><Layers className="h-4 w-4 text-purple-500" /></div>
           <p className="text-[10px] font-bold text-slate-400 mb-0.5">إجمالي الوحدات</p>
-          <p className="text-xl font-black text-purple-600">{totalUnits.toLocaleString()}</p>
+          <p className="text-lg sm:text-xl font-black text-purple-600">{totalUnits.toLocaleString()}</p>
         </CardBody></Card>
         <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1"><BarChart3 className="h-4 w-4 text-emerald-500" /></div>
           <p className="text-[10px] font-bold text-slate-400 mb-0.5">قيمة المخزون (تكلفة)</p>
-          <p className="text-xl font-black text-emerald-600">{formatCurrency(totalValue)}</p>
+          <p className="text-lg sm:text-xl font-black text-emerald-600">{formatCurrency(totalValue)}</p>
         </CardBody></Card>
         <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1"><TrendingUp className="h-4 w-4 text-cyan-500" /></div>
           <p className="text-[10px] font-bold text-slate-400 mb-0.5">قيمة المخزون (بيع)</p>
-          <p className="text-xl font-black text-cyan-600">{formatCurrency(totalSellValue)}</p>
+          <p className="text-lg sm:text-xl font-black text-cyan-600">{formatCurrency(totalSellValue)}</p>
         </CardBody></Card>
         <Card className={`shadow-sm border ${lowStock.length > 0 ? 'border-amber-200 bg-amber-50/30' : 'border-slate-100'}`}><CardBody className="p-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1"><TrendingDown className="h-4 w-4 text-amber-500" /></div>
           <p className="text-[10px] font-bold text-slate-400 mb-0.5">مخزون منخفض</p>
-          <p className="text-xl font-black text-amber-600">{lowStock.length}</p>
+          <p className="text-lg sm:text-xl font-black text-amber-600">{lowStock.length}</p>
         </CardBody></Card>
         <Card className={`shadow-sm border ${outOfStock.length > 0 ? 'border-red-200 bg-red-50/30' : 'border-slate-100'}`}><CardBody className="p-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1"><AlertTriangle className="h-4 w-4 text-red-500" /></div>
           <p className="text-[10px] font-bold text-slate-400 mb-0.5">نفد المخزون</p>
-          <p className="text-xl font-black text-red-600">{outOfStock.length}</p>
+          <p className="text-lg sm:text-xl font-black text-red-600">{outOfStock.length}</p>
         </CardBody></Card>
       </div>
 

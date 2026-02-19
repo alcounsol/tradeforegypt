@@ -344,7 +344,8 @@ export default function AccountsPage() {
           <Calculator className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد حركات مالية</p>
         </CardBody></Card>
       ) : (
-        <Card className="shadow-md border border-slate-100">
+        <>
+        <Card className="shadow-md border border-slate-100 hidden sm:block">
           <div className="flex items-center justify-end px-4 pt-3 pb-1">
             <button onClick={() => exportToCSV(filtered as any, [{key:'transaction_date',label:'التاريخ'},{key:'type',label:'النوع'},{key:'category',label:'الفئة'},{key:'description',label:'الوصف'},{key:'amount',label:'المبلغ'}], 'transactions')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 transition-all">
               <Download className="h-3.5 w-3.5" />تصدير CSV
@@ -391,7 +392,39 @@ export default function AccountsPage() {
             </table>
           </CardBody>
         </Card>
-      )}
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden space-y-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-500">{filtered.length} حركة</span>
+              <button onClick={() => exportToCSV(filtered as any, [{key:'transaction_date',label:'التاريخ'},{key:'type',label:'النوع'},{key:'category',label:'الفئة'},{key:'description',label:'الوصف'},{key:'amount',label:'المبلغ'}], 'transactions')} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-emerald-50 text-emerald-600 border-emerald-200">
+                <Download className="h-3 w-3" />تصدير
+              </button>
+            </div>
+            {filtered.map((t) => (
+              <div key={t.id} className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-slate-700 truncate">{t.description || '-'}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{t.transaction_date}</p>
+                  </div>
+                  <span className={`font-extrabold text-sm shrink-0 ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                    {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
+                  </span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${t.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+                    {t.type === 'income' ? 'إيراد' : 'مصروف'}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-600 text-[10px] font-bold">{t.category}</span>
+                </div>
+              </div>
+            ))}
+            <div className="bg-emerald-50 rounded-xl p-2.5 text-center">
+              <span className="text-xs font-extrabold text-emerald-800">صافي الربح: {formatCurrency(netProfit)}</span>
+            </div>
+          </div>
+        </>)}
     </div>
   )
 }

@@ -277,16 +277,16 @@ export default function BackupPage() {
       <input type="file" ref={singleFileRef} className="hidden" accept=".json,.csv" onChange={handleUploadSection} />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
         <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
           <HardDrive className="h-5 w-5 text-violet-500 mx-auto mb-1" />
           <p className="text-[10px] font-bold text-slate-400">إجمالي الأقسام</p>
-          <p className="text-xl font-black text-violet-600">{Object.keys(SECTIONS).length}</p>
+          <p className="text-lg sm:text-xl font-black text-violet-600">{Object.keys(SECTIONS).length}</p>
         </CardBody></Card>
         <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
           <Table2 className="h-5 w-5 text-blue-500 mx-auto mb-1" />
           <p className="text-[10px] font-bold text-slate-400">إجمالي السجلات</p>
-          <p className="text-xl font-black text-blue-600">{loading ? '...' : totalRecords.toLocaleString()}</p>
+          <p className="text-lg sm:text-xl font-black text-blue-600">{loading ? '...' : totalRecords.toLocaleString()}</p>
         </CardBody></Card>
         <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
           <Shield className="h-5 w-5 text-emerald-500 mx-auto mb-1" />
