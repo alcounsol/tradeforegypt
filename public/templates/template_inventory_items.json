@@ -1,0 +1,57 @@
+[
+  {
+    "name": "حبر طابعة HP 85A",
+    "sku": "HP-85A-001",
+    "category": "أحبار",
+    "brand": "HP",
+    "unit": "قطعة",
+    "current_stock": 25,
+    "min_stock_level": 5,
+    "cost_price": 150,
+    "sell_price": 250
+  },
+  {
+    "name": "درام وحدة تصوير Canon",
+    "sku": "CN-DRM-001",
+    "category": "قطع غيار",
+    "brand": "Canon",
+    "unit": "قطعة",
+    "current_stock": 10,
+    "min_stock_level": 3,
+    "cost_price": 500,
+    "sell_price": 800
+  },
+  {
+    "name": "فيوزر HP LaserJet",
+    "sku": "HP-FUS-001",
+    "category": "قطع غيار",
+    "brand": "HP",
+    "unit": "قطعة",
+    "current_stock": 5,
+    "min_stock_level": 2,
+    "cost_price": 800,
+    "sell_price": 1200
+  },
+  {
+    "name": "ورق A4 80 جرام",
+    "sku": "PPR-A4-001",
+    "category": "مستلزمات",
+    "brand": "Double A",
+    "unit": "كرتونة",
+    "current_stock": 50,
+    "min_stock_level": 10,
+    "cost_price": 180,
+    "sell_price": 220
+  },
+  {
+    "name": "حبر Canon NPG-59",
+    "sku": "CN-NPG59-001",
+    "category": "أحبار",
+    "brand": "Canon",
+    "unit": "قطعة",
+    "current_stock": 15,
+    "min_stock_level": 5,
+    "cost_price": 200,
+    "sell_price": 350
+  }
+]

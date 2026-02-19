@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, Receipt, Wrench,
   Users, Wallet, UserCircle, Truck, FileBarChart, Settings, LogOut,
   Phone, PhoneForwarded, TrendingUp, Gift, ClipboardList, ChevronDown, ChevronLeft, UserCheck,
-  FileText, Calculator
+  FileText, Calculator, Database
 } from 'lucide-react'
 
 const navSections = [
@@ -57,6 +57,7 @@ const navSections = [
     items: [
       { href: '/suppliers', label: 'الموردين', icon: Truck, color: 'bg-orange-500' },
       { href: '/reports', label: 'التقارير', icon: FileBarChart, color: 'bg-indigo-500' },
+      { href: '/backup', label: 'النسخ الاحتياطي', icon: Database, color: 'bg-violet-500' },
     ]
   },
 ]

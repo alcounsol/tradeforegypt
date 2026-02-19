@@ -1,0 +1,18 @@
+[
+  {
+    "name": "شركة التوريدات المتحدة",
+    "contact_person": "أ. خالد محمود",
+    "phone": "01122334455",
+    "email": "sales@united-supplies.com",
+    "address": "القاهرة - وسط البلد - شارع 26 يوليو",
+    "notes": "مورد أحبار وقطع غيار HP"
+  },
+  {
+    "name": "مؤسسة الشرق للتقنية",
+    "contact_person": "م. أحمد سعيد",
+    "phone": "01233445566",
+    "email": "info@sharq-tech.com",
+    "address": "القاهرة - مدينة نصر",
+    "notes": "مورد أجهزة Canon و Ricoh"
+  }
+]

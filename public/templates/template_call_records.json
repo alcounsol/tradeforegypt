@@ -1,0 +1,26 @@
+[
+  {
+    "customer_name": "أحمد حسن",
+    "customer_phone": "01199887766",
+    "customer_address": "القاهرة - المعادي",
+    "customer_type": "فرد",
+    "request_type": "صيانة",
+    "device_brand": "HP",
+    "device_name": "LaserJet Pro",
+    "call_outcome": "مهتم",
+    "call_date": "2026-02-15",
+    "notes": "سيحضر الجهاز غداً"
+  },
+  {
+    "customer_name": "شركة الفجر",
+    "customer_phone": "01088776655",
+    "customer_address": "الجيزة - 6 أكتوبر",
+    "customer_type": "شركة",
+    "request_type": "توريد",
+    "device_brand": "Ricoh",
+    "device_name": "MP C3004",
+    "call_outcome": "مهتم",
+    "call_date": "2026-02-15",
+    "notes": "يريد عرض سعر لـ 10 أجهزة"
+  }
+]

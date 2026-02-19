@@ -1,0 +1,29 @@
+[
+  {
+    "name": "أحمد محمد",
+    "job_title": "مهندس صيانة",
+    "department": "الصيانة",
+    "phone": "01012345678",
+    "base_salary": 8000,
+    "is_active": true,
+    "notes": "موظف نموذجي"
+  },
+  {
+    "name": "سارة أحمد",
+    "job_title": "موظفة كول سنتر",
+    "department": "الكول سنتر",
+    "phone": "01098765432",
+    "base_salary": 4000,
+    "is_active": true,
+    "notes": ""
+  },
+  {
+    "name": "خالد حسن",
+    "job_title": "موظف متابعة",
+    "department": "المتابعة",
+    "phone": "01155667788",
+    "base_salary": 4000,
+    "is_active": true,
+    "notes": ""
+  }
+]

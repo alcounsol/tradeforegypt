@@ -1,0 +1,26 @@
+[
+  {
+    "service_type": "صيانة",
+    "customer_name": "شركة النور",
+    "customer_phone": "01112233445",
+    "device_type": "طابعة",
+    "device_brand": "HP",
+    "device_model": "LaserJet Pro M404",
+    "amount": 500,
+    "payment_method": "كاش",
+    "service_date": "2026-02-10",
+    "notes": "تغيير حبر وتنظيف"
+  },
+  {
+    "service_type": "صيانة",
+    "customer_name": "محمد علي",
+    "customer_phone": "01055667788",
+    "device_type": "ماكينة تصوير",
+    "device_brand": "Canon",
+    "device_model": "imageRUNNER 2625i",
+    "amount": 1500,
+    "payment_method": "تحويل",
+    "service_date": "2026-02-12",
+    "notes": "تغيير درام وفيوزر"
+  }
+]

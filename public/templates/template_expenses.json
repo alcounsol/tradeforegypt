@@ -1,0 +1,30 @@
+[
+  {
+    "expense_type": "إيجار",
+    "category": "مصروفات ثابتة",
+    "amount": 15000,
+    "description": "إيجار المقر الشهري",
+    "expense_date": "2026-02-01"
+  },
+  {
+    "expense_type": "كهرباء",
+    "category": "مصروفات تشغيل",
+    "amount": 3000,
+    "description": "فاتورة كهرباء فبراير",
+    "expense_date": "2026-02-15"
+  },
+  {
+    "expense_type": "إنترنت",
+    "category": "مصروفات تشغيل",
+    "amount": 500,
+    "description": "اشتراك إنترنت شهري",
+    "expense_date": "2026-02-01"
+  },
+  {
+    "expense_type": "نقل",
+    "category": "مصروفات تشغيل",
+    "amount": 2000,
+    "description": "مصاريف نقل وتوصيل أجهزة",
+    "expense_date": "2026-02-10"
+  }
+]

@@ -1,0 +1,41 @@
+[
+  {
+    "name": "شركة النور للتجارة",
+    "phone": "01112233445",
+    "email": "info@alnour.com",
+    "address": "القاهرة - مدينة نصر - شارع عباس العقاد",
+    "customer_type": "شركة",
+    "request_type": "صيانة",
+    "company_name": "شركة النور للتجارة",
+    "device_brand": "HP",
+    "device_name": "LaserJet Pro M404",
+    "status": "جديد",
+    "notes": "عقد صيانة سنوي"
+  },
+  {
+    "name": "محمد علي إبراهيم",
+    "phone": "01055667788",
+    "email": "mohamed@gmail.com",
+    "address": "الجيزة - الهرم - شارع الملك فيصل",
+    "customer_type": "فرد",
+    "request_type": "توريد",
+    "company_name": "",
+    "device_brand": "Canon",
+    "device_name": "imageRUNNER 2625i",
+    "status": "جديد",
+    "notes": "يريد 3 أجهزة تصوير"
+  },
+  {
+    "name": "مؤسسة الأمل التعليمية",
+    "phone": "01199887766",
+    "email": "admin@alamal.edu",
+    "address": "الإسكندرية - سموحة",
+    "customer_type": "شركة",
+    "request_type": "صيانة",
+    "company_name": "مؤسسة الأمل التعليمية",
+    "device_brand": "Ricoh",
+    "device_name": "MP C3004",
+    "status": "مهتم",
+    "notes": "5 أجهزة تحتاج صيانة"
+  }
+]
