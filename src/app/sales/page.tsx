@@ -8,7 +8,7 @@ import CustomModal from '@/components/CustomModal'
 import FormInput, { FormSelect, FormTextarea } from '@/components/FormInput'
 import { ModalSubmitButton, ModalCancelButton, SearchInput } from '@/components/ActionButtons'
 import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Chip, Tooltip, Spinner } from '@nextui-org/react'
-import { TrendingUp, Edit, Trash2 } from 'lucide-react'
+import { TrendingUp, Edit, Trash2, FileText, CheckCircle } from 'lucide-react'
 
 const statusConfig: Record<string, { label: string; color: any }> = {
   pending: { label: 'قيد الانتظار', color: 'default' },
@@ -35,25 +35,31 @@ export default function SalesPage() {
     service_offered: 'maintenance' as string, status: 'pending' as string,
     offered_amount: 0, notes: '', result: '', next_action_date: '',
   })
+  const [invoiceCreated, setInvoiceCreated] = useState<Record<number, boolean>>({})
 
   useEffect(() => { fetchAll() }, [])
 
   async function fetchAll() {
     setLoading(true)
-    const [{ data: sales }, { data: emps }, { data: custs }] = await Promise.all([
+    const [{ data: sales }, { data: emps }, { data: custs }, { data: existingInvoices }] = await Promise.all([
       supabase.from('sales_activities').select('*, employee:employees(id,name), customer:customers(id,name,phone)').order('activity_date', { ascending: false }),
       supabase.from('employees').select('*').eq('department', 'sales').eq('is_active', true),
       supabase.from('customers').select('*').order('created_at', { ascending: false }),
+      supabase.from('invoices').select('id, sales_activity_id').not('sales_activity_id', 'is', null),
     ])
     setRecords(sales || [])
     setEmployees(emps || [])
     setCustomers(custs || [])
+    // Track which sales already have invoices
+    const invoiceMap: Record<number, boolean> = {}
+    ;(existingInvoices || []).forEach((i: any) => { if (i.sales_activity_id) invoiceMap[i.sales_activity_id] = true })
+    setInvoiceCreated(invoiceMap)
     setLoading(false)
   }
 
   const filtered = records.filter(r => {
     const cust = r.customer as any
-    return cust?.name?.includes(search) || cust?.phone?.includes(search)
+    return !search || cust?.name?.includes(search) || cust?.phone?.includes(search)
   })
 
   function openAdd() {
@@ -78,16 +84,88 @@ export default function SalesPage() {
     if (!payload.customer_id) { alert('يرجى اختيار العميل'); return }
     if (!payload.employee_id) delete payload.employee_id
 
+    const previousStatus = editItem?.status
+    const newStatus = payload.status
+
     if (editItem) {
       await supabase.from('sales_activities').update(payload).eq('id', editItem.id)
     } else {
-      await supabase.from('sales_activities').insert([payload])
+      const { data } = await supabase.from('sales_activities').insert([payload]).select().single()
+      if (data && newStatus === 'closed_won') {
+        await createInvoiceFromSale(data, payload)
+      }
+    }
+
+    // If status changed to closed_won and no invoice exists yet
+    if (editItem && newStatus === 'closed_won' && previousStatus !== 'closed_won' && !invoiceCreated[editItem.id]) {
+      await createInvoiceFromSale(editItem, payload)
     }
 
     // Update customer assignment
     await supabase.from('customers').update({ assigned_sales_employee: formData.employee_id || null }).eq('id', formData.customer_id)
 
     setIsOpen(false)
+    fetchAll()
+  }
+
+  async function createInvoiceFromSale(sale: any, formPayload?: any) {
+    const saleId = sale.id
+    const customerId = formPayload?.customer_id || sale.customer_id
+    const amount = formPayload?.offered_amount || sale.offered_amount || 0
+    const serviceType = formPayload?.service_offered || sale.service_offered || 'sales'
+
+    if (!customerId || amount <= 0) return
+
+    const customer = customers.find(c => c.id === customerId)
+    const invoiceType = serviceType === 'maintenance' ? 'service' : serviceType === 'supply' ? 'supply' : serviceType === 'exchange' ? 'exchange' : 'sales'
+
+    // Create invoice
+    const { data: newInvoice } = await supabase.from('invoices').insert([{
+      customer_id: customerId,
+      invoice_type: invoiceType,
+      invoice_date: new Date().toISOString().split('T')[0],
+      subtotal: amount,
+      discount: 0,
+      tax: 0,
+      total_amount: amount,
+      paid_amount: 0,
+      status: 'unpaid',
+      payment_method: 'CASH',
+      sales_activity_id: saleId,
+      notes: `فاتورة تلقائية من صفقة ${serviceLabels[serviceType] || ''} - ${customer?.name || ''}`,
+    }]).select().single()
+
+    if (newInvoice) {
+      // Insert invoice item
+      await supabase.from('invoice_items').insert([{
+        invoice_id: newInvoice.id,
+        description: `${serviceLabels[serviceType] || 'بيع'} - ${customer?.name || ''}`,
+        item_type: serviceType,
+        quantity: 1,
+        unit_price: amount,
+        total_price: amount,
+      }])
+
+      // Record transaction
+      await supabase.from('transactions').insert([{
+        transaction_date: new Date().toISOString().split('T')[0],
+        type: 'income',
+        category: serviceLabels[serviceType] || 'مبيعات',
+        amount: amount,
+        description: `فاتورة ${newInvoice.invoice_number || '#' + newInvoice.id} - صفقة ${serviceLabels[serviceType] || ''} - ${customer?.name || ''}`,
+        reference_type: 'invoice',
+        reference_id: newInvoice.id,
+        invoice_id: newInvoice.id,
+      }])
+
+      alert(`تم إنشاء فاتورة تلقائياً!\nرقم الفاتورة: ${newInvoice.invoice_number || '#' + newInvoice.id}\nالمبلغ: ${formatCurrency(amount)}`)
+    }
+  }
+
+  async function manualCreateInvoice(sale: SalesActivity) {
+    const customer = customers.find(c => c.id === sale.customer_id)
+    if (!customer) { alert('لم يتم العثور على العميل'); return }
+    await createInvoiceFromSale(sale)
     fetchAll()
   }
 
@@ -158,6 +236,21 @@ export default function SalesPage() {
                       <TableCell className="text-sm text-slate-500">{r.activity_date ? formatDate(r.activity_date) : '-'}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
+                          {r.status === 'closed_won' && (
+                            invoiceCreated[r.id] ? (
+                              <Tooltip content="تم إنشاء الفاتورة">
+                                <Button isIconOnly size="sm" variant="flat" color="success" className="cursor-default">
+                                  <CheckCircle className="h-4 w-4" />
+                                </Button>
+                              </Tooltip>
+                            ) : (
+                              <Tooltip content="إنشاء فاتورة">
+                                <Button isIconOnly size="sm" variant="flat" color="warning" onPress={() => manualCreateInvoice(r)}>
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              </Tooltip>
+                            )
+                          )}
                           <Tooltip content="تعديل"><Button isIconOnly size="sm" variant="light" color="primary" onPress={() => openEdit(r)}><Edit className="h-4 w-4" /></Button></Tooltip>
                           <Tooltip content="حذف" color="danger"><Button isIconOnly size="sm" variant="light" color="danger" onPress={() => handleDelete(r.id)}><Trash2 className="h-4 w-4" /></Button></Tooltip>
                         </div>
@@ -205,10 +298,15 @@ export default function SalesPage() {
               { value: 'pending', label: 'قيد الانتظار' },
               { value: 'interested', label: 'مهتم' },
               { value: 'negotiating', label: 'تفاوض' },
-              { value: 'closed_won', label: 'تم البيع' },
+              { value: 'closed_won', label: 'تم البيع ✓' },
               { value: 'closed_lost', label: 'خسارة' },
             ]} />
           </div>
+          {formData.status === 'closed_won' && !editItem && (
+            <div className="p-3 bg-green-50 rounded-xl border border-green-200">
+              <p className="text-xs font-bold text-green-700">سيتم إنشاء فاتورة تلقائياً عند حفظ الصفقة بحالة &quot;تم البيع&quot;</p>
+            </div>
+          )}
           <FormInput label="المبلغ المعروض" type="number" value={formData.offered_amount} onChange={(v) => setFormData({...formData, offered_amount: parseFloat(v) || 0})} />
           <FormTextarea label="ملاحظات" value={formData.notes} onChange={(v) => setFormData({...formData, notes: v})} />
           <FormInput label="النتيجة" value={formData.result} onChange={(v) => setFormData({...formData, result: v})} />

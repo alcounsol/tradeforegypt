@@ -6,7 +6,27 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import { SearchInput } from '@/components/ActionButtons'
 import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Chip, Spinner } from '@nextui-org/react'
-import { Calculator, TrendingUp, TrendingDown, DollarSign, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
+import { Calculator, TrendingUp, TrendingDown, DollarSign, ArrowUpCircle, ArrowDownCircle, BarChart3, PieChart as PieChartIcon } from 'lucide-react'
+import dynamic from 'next/dynamic'
+
+// Dynamic import for Recharts (client-side only)
+const BarChart = dynamic(() => import('recharts').then(mod => mod.BarChart), { ssr: false })
+const Bar = dynamic(() => import('recharts').then(mod => mod.Bar), { ssr: false })
+const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis), { ssr: false })
+const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis), { ssr: false })
+const CartesianGrid = dynamic(() => import('recharts').then(mod => mod.CartesianGrid), { ssr: false })
+const RechartsTooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr: false })
+const Legend = dynamic(() => import('recharts').then(mod => mod.Legend), { ssr: false })
+const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false })
+const PieChart = dynamic(() => import('recharts').then(mod => mod.PieChart), { ssr: false })
+const Pie = dynamic(() => import('recharts').then(mod => mod.Pie), { ssr: false })
+const Cell = dynamic(() => import('recharts').then(mod => mod.Cell), { ssr: false })
+const LineChart = dynamic(() => import('recharts').then(mod => mod.LineChart), { ssr: false })
+const Line = dynamic(() => import('recharts').then(mod => mod.Line), { ssr: false })
+const Area = dynamic(() => import('recharts').then(mod => mod.Area), { ssr: false })
+const AreaChart = dynamic(() => import('recharts').then(mod => mod.AreaChart), { ssr: false })
+
+const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6', '#f97316', '#6366f1']
 
 export default function AccountsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -15,8 +35,9 @@ export default function AccountsPage() {
   const [filterType, setFilterType] = useState('all')
   const [filterCategory, setFilterCategory] = useState('all')
   const [period, setPeriod] = useState('month')
+  const [chartReady, setChartReady] = useState(false)
 
-  useEffect(() => { fetchAll() }, [])
+  useEffect(() => { fetchAll(); setChartReady(true) }, [])
 
   async function fetchAll() {
     setLoading(true)
@@ -25,7 +46,6 @@ export default function AccountsPage() {
     setLoading(false)
   }
 
-  // Period filter
   const now = new Date()
   const periodStart = period === 'today' ? new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString().split('T')[0]
     : period === 'week' ? new Date(now.getTime() - 7 * 86400000).toISOString().split('T')[0]
@@ -46,16 +66,37 @@ export default function AccountsPage() {
   const netProfit = totalIncome - totalExpense
   const categories = [...new Set(transactions.map(t => t.category))].filter(Boolean)
 
-  // Group by category for breakdown
+  // Group by category
   const incomeByCategory: Record<string, number> = {}
   const expenseByCategory: Record<string, number> = {}
   filtered.forEach(t => {
-    if (t.type === 'income') {
-      incomeByCategory[t.category] = (incomeByCategory[t.category] || 0) + t.amount
-    } else {
-      expenseByCategory[t.category] = (expenseByCategory[t.category] || 0) + t.amount
-    }
+    if (t.type === 'income') incomeByCategory[t.category] = (incomeByCategory[t.category] || 0) + t.amount
+    else expenseByCategory[t.category] = (expenseByCategory[t.category] || 0) + t.amount
   })
+
+  // Pie chart data
+  const incomePieData = Object.entries(incomeByCategory).map(([name, value]) => ({ name, value }))
+  const expensePieData = Object.entries(expenseByCategory).map(([name, value]) => ({ name, value }))
+
+  // Monthly trend data (last 6 months)
+  const monthlyData: { month: string; income: number; expense: number; profit: number }[] = []
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const monthLabel = d.toLocaleDateString('ar-EG', { month: 'short', year: 'numeric' })
+    const monthTxns = transactions.filter(t => t.transaction_date?.startsWith(monthStr))
+    const inc = monthTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
+    const exp = monthTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+    monthlyData.push({ month: monthLabel, income: inc, expense: exp, profit: inc - exp })
+  }
+
+  // Category comparison bar chart
+  const allCats = [...new Set([...Object.keys(incomeByCategory), ...Object.keys(expenseByCategory)])]
+  const categoryBarData = allCats.map(cat => ({
+    category: cat,
+    income: incomeByCategory[cat] || 0,
+    expense: expenseByCategory[cat] || 0,
+  }))
 
   return (
     <div className="w-full">
@@ -115,6 +156,108 @@ export default function AccountsPage() {
         </CardBody></Card>
       </div>
 
+      {/* Charts Section */}
+      {chartReady && (
+        <>
+          {/* Monthly Trend Chart */}
+          <Card className="shadow-md mb-6">
+            <CardBody className="p-4">
+              <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-blue-600" />الاتجاه المالي الشهري (آخر 6 أشهر)
+              </h3>
+              <div style={{ width: '100%', height: 320, direction: 'ltr' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={monthlyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fontFamily: 'Tajawal' }} />
+                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
+                    <RechartsTooltip formatter={(value: any) => formatCurrency(Number(value) || 0)} labelStyle={{ fontFamily: 'Tajawal' }} contentStyle={{ fontFamily: 'Tajawal', direction: 'rtl' }} />
+                    <Legend wrapperStyle={{ fontFamily: 'Tajawal' }} />
+                    <Area type="monotone" dataKey="income" name="الإيرادات" stroke="#10b981" fill="#10b98130" strokeWidth={2} />
+                    <Area type="monotone" dataKey="expense" name="المصروفات" stroke="#ef4444" fill="#ef444430" strokeWidth={2} />
+                    <Area type="monotone" dataKey="profit" name="صافي الربح" stroke="#3b82f6" fill="#3b82f630" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Pie Charts */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <Card className="shadow-md">
+              <CardBody className="p-4">
+                <h3 className="text-sm font-bold text-green-700 mb-3 flex items-center gap-2">
+                  <PieChartIcon className="h-4 w-4" />توزيع الإيرادات حسب الفئة
+                </h3>
+                {incomePieData.length === 0 ? (
+                  <p className="text-sm text-slate-400 text-center py-8">لا توجد إيرادات في هذه الفترة</p>
+                ) : (
+                  <div style={{ width: '100%', height: 280, direction: 'ltr' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={incomePieData} cx="50%" cy="50%" outerRadius={90} innerRadius={40} paddingAngle={3} dataKey="value" label={({ name, percent }: any) => `${name} (${(percent * 100).toFixed(0)}%)`} labelLine={true}>
+                          {incomePieData.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip formatter={(value: any) => formatCurrency(Number(value) || 0)} contentStyle={{ fontFamily: 'Tajawal', direction: 'rtl' }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardBody>
+            </Card>
+            <Card className="shadow-md">
+              <CardBody className="p-4">
+                <h3 className="text-sm font-bold text-red-700 mb-3 flex items-center gap-2">
+                  <PieChartIcon className="h-4 w-4" />توزيع المصروفات حسب الفئة
+                </h3>
+                {expensePieData.length === 0 ? (
+                  <p className="text-sm text-slate-400 text-center py-8">لا توجد مصروفات في هذه الفترة</p>
+                ) : (
+                  <div style={{ width: '100%', height: 280, direction: 'ltr' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={expensePieData} cx="50%" cy="50%" outerRadius={90} innerRadius={40} paddingAngle={3} dataKey="value" label={({ name, percent }: any) => `${name} (${(percent * 100).toFixed(0)}%)`} labelLine={true}>
+                          {expensePieData.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip formatter={(value: any) => formatCurrency(Number(value) || 0)} contentStyle={{ fontFamily: 'Tajawal', direction: 'rtl' }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardBody>
+            </Card>
+          </div>
+
+          {/* Category Comparison Bar Chart */}
+          {categoryBarData.length > 0 && (
+            <Card className="shadow-md mb-6">
+              <CardBody className="p-4">
+                <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-purple-600" />مقارنة الإيرادات والمصروفات حسب الفئة
+                </h3>
+                <div style={{ width: '100%', height: 320, direction: 'ltr' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={categoryBarData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="category" tick={{ fontSize: 10, fontFamily: 'Tajawal' }} />
+                      <YAxis tick={{ fontSize: 11 }} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
+                      <RechartsTooltip formatter={(value: any) => formatCurrency(Number(value) || 0)} contentStyle={{ fontFamily: 'Tajawal', direction: 'rtl' }} />
+                      <Legend wrapperStyle={{ fontFamily: 'Tajawal' }} />
+                      <Bar dataKey="income" name="إيرادات" fill="#10b981" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="expense" name="مصروفات" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardBody>
+            </Card>
+          )}
+        </>
+      )}
+
       {/* Income/Expense Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <Card className="shadow-sm">
@@ -127,7 +270,12 @@ export default function AccountsPage() {
                 {Object.entries(incomeByCategory).sort((a, b) => b[1] - a[1]).map(([cat, amount]) => (
                   <div key={cat} className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
                     <span className="text-sm font-semibold">{cat}</span>
-                    <span className="font-bold text-green-700">{formatCurrency(amount)}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 h-2 bg-green-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-green-500 rounded-full" style={{ width: `${(amount / totalIncome) * 100}%` }} />
+                      </div>
+                      <span className="font-bold text-green-700 text-sm">{formatCurrency(amount)}</span>
+                    </div>
                   </div>
                 ))}
                 <div className="flex items-center justify-between p-2 bg-green-100 rounded-lg border border-green-200 mt-2">
@@ -148,7 +296,12 @@ export default function AccountsPage() {
                 {Object.entries(expenseByCategory).sort((a, b) => b[1] - a[1]).map(([cat, amount]) => (
                   <div key={cat} className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
                     <span className="text-sm font-semibold">{cat}</span>
-                    <span className="font-bold text-red-700">{formatCurrency(amount)}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 h-2 bg-red-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-red-500 rounded-full" style={{ width: `${(amount / totalExpense) * 100}%` }} />
+                      </div>
+                      <span className="font-bold text-red-700 text-sm">{formatCurrency(amount)}</span>
+                    </div>
                   </div>
                 ))}
                 <div className="flex items-center justify-between p-2 bg-red-100 rounded-lg border border-red-200 mt-2">
@@ -209,7 +362,7 @@ export default function AccountsPage() {
                       </Chip>
                     </TableCell>
                     <TableCell><Chip size="sm" variant="flat" color="secondary" className="font-semibold">{t.category}</Chip></TableCell>
-                    <TableCell className="text-sm">{t.description || '-'}</TableCell>
+                    <TableCell className="text-sm max-w-[300px] truncate">{t.description || '-'}</TableCell>
                     <TableCell className={`font-extrabold ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                       {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                     </TableCell>

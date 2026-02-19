@@ -1,14 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase, ServiceRecord, InventoryItem } from '@/lib/supabase'
+import { supabase, ServiceRecord, InventoryItem, Customer } from '@/lib/supabase'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
 import FormInput, { FormSelect, FormTextarea } from '@/components/FormInput'
 import { ModalSubmitButton, ModalCancelButton, SearchInput } from '@/components/ActionButtons'
 import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Chip, Tooltip, Spinner } from '@nextui-org/react'
-import { Wrench, Edit, Trash2, Plus, X } from 'lucide-react'
+import { Wrench, Edit, Trash2, Plus, X, FileText, CheckCircle } from 'lucide-react'
 
 type PartEntry = { inventory_item_id: number; quantity: number; item_name?: string; unit_cost?: number }
 
@@ -16,6 +16,7 @@ export default function Services() {
   const [services, setServices] = useState<ServiceRecord[]>([])
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
   const [deviceReceipts, setDeviceReceipts] = useState<any[]>([])
+  const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -26,19 +27,27 @@ export default function Services() {
     notes: '', service_date: new Date().toISOString().split('T')[0]
   })
   const [parts, setParts] = useState<PartEntry[]>([])
+  const [invoiceCreated, setInvoiceCreated] = useState<Record<number, boolean>>({})
 
   useEffect(() => { fetchAll() }, [])
 
   async function fetchAll() {
     setLoading(true)
-    const [{ data: svc }, { data: inv }, { data: dev }] = await Promise.all([
+    const [{ data: svc }, { data: inv }, { data: dev }, { data: custs }, { data: existingInvoices }] = await Promise.all([
       supabase.from('service_records').select('*').order('service_date', { ascending: false }),
       supabase.from('inventory_items').select('*').gt('current_stock', 0).order('name'),
       supabase.from('device_receipts').select('*, customer:customers(id,name,phone)').in('status', ['received', 'in_diagnosis', 'in_repair']).order('receipt_date', { ascending: false }),
+      supabase.from('customers').select('*').order('name'),
+      supabase.from('invoices').select('id, service_record_id').not('service_record_id', 'is', null),
     ])
     setServices(svc || [])
     setInventoryItems(inv || [])
     setDeviceReceipts(dev || [])
+    setCustomers(custs || [])
+    // Track which services already have invoices
+    const invoiceMap: Record<number, boolean> = {}
+    ;(existingInvoices || []).forEach((i: any) => { if (i.service_record_id) invoiceMap[i.service_record_id] = true })
+    setInvoiceCreated(invoiceMap)
     setLoading(false)
   }
 
@@ -113,9 +122,9 @@ export default function Services() {
       await supabase.from('transactions').insert([{
         transaction_date: formData.service_date || new Date().toISOString().split('T')[0],
         type: 'income',
-        category: formData.service_type === 'INSPECTION' ? '\u0643\u0634\u0641' : '\u0635\u064a\u0627\u0646\u0629',
+        category: formData.service_type === 'INSPECTION' ? 'كشف' : 'صيانة',
         amount: formData.amount,
-        description: `${formData.service_type === 'INSPECTION' ? '\u0643\u0634\u0641' : '\u0635\u064a\u0627\u0646\u0629'} - ${formData.customer_name} - ${formData.device_brand || ''} ${formData.device_model || ''}`,
+        description: `${formData.service_type === 'INSPECTION' ? 'كشف' : 'صيانة'} - ${formData.customer_name} - ${formData.device_brand || ''} ${formData.device_model || ''}`,
         reference_type: 'service',
         reference_id: serviceId,
       }])
@@ -144,6 +153,109 @@ export default function Services() {
   async function handleDelete(id: number) {
     if (confirm('هل أنت متأكد من حذف هذا السجل؟')) {
       await supabase.from('service_records').delete().eq('id', id)
+      fetchAll()
+    }
+  }
+
+  // Create invoice automatically from service record
+  async function createInvoiceFromService(service: ServiceRecord) {
+    // Find customer by phone or name
+    let customerId: number | null = null
+    if (service.customer_phone) {
+      const cust = customers.find(c => c.phone === service.customer_phone)
+      if (cust) customerId = cust.id
+    }
+    if (!customerId && service.customer_name) {
+      const cust = customers.find(c => c.name === service.customer_name)
+      if (cust) customerId = cust.id
+    }
+
+    if (!customerId) {
+      // Create customer if not found
+      const { data: newCust } = await supabase.from('customers').insert([{
+        name: service.customer_name || 'عميل',
+        phone: service.customer_phone || null,
+        customer_type: 'individual',
+        request_type: 'maintenance',
+        status: 'completed',
+      }]).select().single()
+      customerId = newCust?.id || null
+    }
+
+    if (!customerId) { alert('خطأ في إنشاء/إيجاد العميل'); return }
+
+    // Get service parts for this service
+    const { data: serviceParts } = await supabase.from('service_parts')
+      .select('*, inventory_item:inventory_items(name)')
+      .eq('service_record_id', service.id)
+
+    // Build invoice items
+    const invoiceItems: any[] = []
+
+    // Main service item
+    invoiceItems.push({
+      description: `${service.service_type === 'INSPECTION' ? 'كشف' : 'صيانة'} - ${service.device_brand || ''} ${service.device_model || ''} ${service.device_type || ''}`.trim(),
+      item_type: 'service',
+      quantity: 1,
+      unit_price: service.amount,
+      total_price: service.amount,
+    })
+
+    // Parts items
+    let partsTotal = 0
+    if (serviceParts && serviceParts.length > 0) {
+      serviceParts.forEach((p: any) => {
+        const partName = p.inventory_item?.name || 'قطعة غيار'
+        invoiceItems.push({
+          description: `قطعة غيار: ${partName}`,
+          item_type: 'part',
+          quantity: p.quantity,
+          unit_price: p.unit_cost || 0,
+          total_price: p.total_cost || 0,
+          inventory_item_id: p.inventory_item_id,
+        })
+        partsTotal += (p.total_cost || 0)
+      })
+    }
+
+    const subtotal = service.amount + partsTotal
+    const totalAmount = subtotal
+
+    // Create invoice
+    const { data: newInvoice } = await supabase.from('invoices').insert([{
+      customer_id: customerId,
+      invoice_type: 'service',
+      invoice_date: service.service_date || new Date().toISOString().split('T')[0],
+      subtotal: subtotal,
+      discount: 0,
+      tax: 0,
+      total_amount: totalAmount,
+      paid_amount: 0,
+      status: 'unpaid',
+      payment_method: service.payment_method || 'CASH',
+      service_record_id: service.id,
+      notes: `فاتورة تلقائية من خدمة ${service.service_type === 'INSPECTION' ? 'كشف' : 'صيانة'} - ${service.customer_name || ''}`,
+    }]).select().single()
+
+    if (newInvoice) {
+      // Insert invoice items
+      await supabase.from('invoice_items').insert(
+        invoiceItems.map(item => ({ ...item, invoice_id: newInvoice.id }))
+      )
+
+      // Record transaction
+      await supabase.from('transactions').insert([{
+        transaction_date: service.service_date || new Date().toISOString().split('T')[0],
+        type: 'income',
+        category: 'فاتورة صيانة',
+        amount: totalAmount,
+        description: `فاتورة ${newInvoice.invoice_number || '#' + newInvoice.id} - ${service.customer_name || ''} - ${service.device_brand || ''} ${service.device_model || ''}`,
+        reference_type: 'invoice',
+        reference_id: newInvoice.id,
+        invoice_id: newInvoice.id,
+      }])
+
+      alert(`تم إنشاء الفاتورة بنجاح!\nرقم الفاتورة: ${newInvoice.invoice_number || '#' + newInvoice.id}\nالمبلغ: ${totalAmount} ج.م.`)
       fetchAll()
     }
   }
@@ -209,6 +321,19 @@ export default function Services() {
                     <TableCell className="text-sm text-slate-500">{s.service_date || '-'}</TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-1">
+                        {invoiceCreated[s.id] ? (
+                          <Tooltip content="تم إنشاء الفاتورة">
+                            <Button isIconOnly size="sm" variant="flat" color="success" className="cursor-default">
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                          </Tooltip>
+                        ) : (
+                          <Tooltip content="إنشاء فاتورة">
+                            <Button isIconOnly size="sm" variant="flat" color="warning" onPress={() => createInvoiceFromService(s)}>
+                              <FileText className="h-4 w-4" />
+                            </Button>
+                          </Tooltip>
+                        )}
                         <Tooltip content="تعديل"><Button isIconOnly size="sm" variant="light" color="primary" onPress={() => openEdit(s)}><Edit className="h-4 w-4" /></Button></Tooltip>
                         <Tooltip content="حذف" color="danger"><Button isIconOnly size="sm" variant="light" color="danger" onPress={() => handleDelete(s.id)}><Trash2 className="h-4 w-4" /></Button></Tooltip>
                       </div>

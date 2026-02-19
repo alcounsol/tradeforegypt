@@ -3,18 +3,36 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
-import { Card, CardBody, CardHeader, Chip, Divider, Spinner, Progress } from '@nextui-org/react'
+import { Card, CardBody, CardHeader, Chip, Spinner, Progress } from '@nextui-org/react'
 import {
   TrendingUp, TrendingDown, DollarSign, AlertTriangle,
   Wrench, Users, Package, FileBarChart, Phone, PhoneForwarded,
   MonitorSmartphone, Gift, ShoppingCart, LayoutDashboard, UserCheck, CheckCircle, Clock, Target,
-  FileText, Calculator, Wallet, ArrowUpRight, ArrowDownRight, BarChart3
+  FileText, Calculator, Wallet, ArrowUpRight, ArrowDownRight, BarChart3, PieChart as PieChartIcon
 } from 'lucide-react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+
+const BarChart = dynamic(() => import('recharts').then(mod => mod.BarChart), { ssr: false })
+const Bar = dynamic(() => import('recharts').then(mod => mod.Bar), { ssr: false })
+const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis), { ssr: false })
+const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis), { ssr: false })
+const CartesianGrid = dynamic(() => import('recharts').then(mod => mod.CartesianGrid), { ssr: false })
+const RechartsTooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr: false })
+const Legend = dynamic(() => import('recharts').then(mod => mod.Legend), { ssr: false })
+const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false })
+const PieChart = dynamic(() => import('recharts').then(mod => mod.PieChart), { ssr: false })
+const Pie = dynamic(() => import('recharts').then(mod => mod.Pie), { ssr: false })
+const Cell = dynamic(() => import('recharts').then(mod => mod.Cell), { ssr: false })
+const AreaChart = dynamic(() => import('recharts').then(mod => mod.AreaChart), { ssr: false })
+const Area = dynamic(() => import('recharts').then(mod => mod.Area), { ssr: false })
+
+const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899']
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState<'today' | 'week' | 'month'>('month')
+  const [chartReady, setChartReady] = useState(false)
   const [stats, setStats] = useState({
     totalRevenue: 0, totalExpenses: 0, netProfit: 0,
     totalCustomers: 0, totalServices: 0, inventoryCount: 0,
@@ -30,9 +48,13 @@ export default function Dashboard() {
     recentInvoices: [] as any[],
     employeePerformance: [] as { name: string; department: string; calls: number; registered: number; arrived: number; incentives: number }[],
     departmentStats: [] as { department: string; label: string; count: number; color: string }[],
+    monthlyTrend: [] as { month: string; income: number; expense: number; profit: number }[],
+    deptPieData: [] as { name: string; value: number }[],
+    ordersPieData: [] as { name: string; value: number }[],
+    empBarData: [] as { name: string; calls: number; arrived: number; incentives: number }[],
   })
 
-  useEffect(() => { fetchStats() }, [period])
+  useEffect(() => { fetchStats(); setChartReady(true) }, [period])
 
   async function fetchStats() {
     setLoading(true)
@@ -50,7 +72,7 @@ export default function Dashboard() {
         { count: salesCount }, { data: devices }, { data: incentives },
         { data: employees }, { data: recentCalls }, { data: recentFollowUps },
         { data: allCustomers }, { data: invoices }, { data: transactions },
-        { data: purchases }, { data: recentInvoices },
+        { data: purchases }, { data: recentInvoices }, { data: allTransactions },
       ] = await Promise.all([
         supabase.from('service_records').select('*').gte('service_date', startDate),
         supabase.from('expenses').select('*').gte('expense_date', startDate),
@@ -72,6 +94,7 @@ export default function Dashboard() {
         supabase.from('transactions').select('*').gte('transaction_date', startDate),
         supabase.from('purchases').select('*').gte('purchase_date', startDate),
         supabase.from('invoices').select('*').order('created_at', { ascending: false }).limit(5),
+        supabase.from('transactions').select('*'),
       ])
 
       const totalRevenue = services?.reduce((sum, s) => sum + (parseFloat(s.amount) || 0), 0) || 0
@@ -80,20 +103,15 @@ export default function Dashboard() {
       const totalIncentives = incentives?.reduce((sum, i) => sum + (i.total_amount || i.amount || 0), 0) || 0
       const lowStockItems = inventory?.filter(i => i.current_stock <= (i.min_stock_level || 5)).map(i => ({ name: i.name, current_stock: i.current_stock, min_stock_level: i.min_stock_level || 5 })) || []
 
-      // Invoices
       const allInvoices = invoices || []
       const invoicesTotal = allInvoices.reduce((s, inv) => s + (parseFloat(inv.total_amount) || 0), 0)
       const invoicesPaid = allInvoices.filter(inv => inv.status === 'paid').reduce((s, inv) => s + (parseFloat(inv.total_amount) || 0), 0)
       const invoicesUnpaid = allInvoices.filter(inv => inv.status !== 'paid').reduce((s, inv) => s + (parseFloat(inv.total_amount) || 0), 0)
 
-      // Transactions
       const transactionsIncome = (transactions || []).filter(t => t.type === 'income').reduce((s, t) => s + (parseFloat(t.amount) || 0), 0)
       const transactionsExpense = (transactions || []).filter(t => t.type === 'expense').reduce((s, t) => s + (parseFloat(t.amount) || 0), 0)
-
-      // Purchases
       const purchasesTotal = (purchases || []).reduce((s, p) => s + (parseFloat(p.total_cost) || 0), 0)
 
-      // Orders stats
       const allCusts = allCustomers || []
       const ordersReceived = allCusts.filter(c => c.source === 'call_center').length
       const ordersArrived = allCusts.filter(c => ['arrived', 'device_received', 'in_repair', 'completed', 'delivered'].includes(c.status)).length
@@ -128,6 +146,37 @@ export default function Dashboard() {
         color: info.color,
       })).filter(d => d.count > 0)
 
+      // Monthly trend (last 6 months)
+      const monthlyTrend: { month: string; income: number; expense: number; profit: number }[] = []
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+        const monthLabel = d.toLocaleDateString('ar-EG', { month: 'short' })
+        const monthTxns = (allTransactions || []).filter(t => t.transaction_date?.startsWith(monthStr))
+        const inc = monthTxns.filter(t => t.type === 'income').reduce((s, t) => s + (parseFloat(t.amount) || 0), 0)
+        const exp = monthTxns.filter(t => t.type === 'expense').reduce((s, t) => s + (parseFloat(t.amount) || 0), 0)
+        monthlyTrend.push({ month: monthLabel, income: inc, expense: exp, profit: inc - exp })
+      }
+
+      // Department pie data
+      const deptPieData = deptStats.map(d => ({ name: d.label, value: d.count }))
+
+      // Orders pie data
+      const ordersPieData = [
+        { name: 'جديد', value: Math.max(0, ordersReceived - ordersArrived) },
+        { name: 'وصل الشركة', value: Math.max(0, ordersArrived - ordersInRepair - ordersCompleted) },
+        { name: 'قيد الصيانة', value: ordersInRepair },
+        { name: 'مكتمل', value: ordersCompleted },
+      ].filter(d => d.value > 0)
+
+      // Employee bar chart data (top 8)
+      const empBarData = empPerf.slice(0, 8).map(e => ({
+        name: e.name.split(' ')[0],
+        calls: e.calls,
+        arrived: e.arrived,
+        incentives: e.incentives,
+      }))
+
       setStats({
         totalRevenue: totalRevenue + transactionsIncome,
         totalExpenses: totalExpenses + totalPayroll + purchasesTotal,
@@ -146,6 +195,7 @@ export default function Dashboard() {
         recentInvoices: recentInvoices || [],
         employeePerformance: empPerf,
         departmentStats: deptStats,
+        monthlyTrend, deptPieData, ordersPieData, empBarData,
       })
     } catch (error) { console.error('Error:', error) }
     finally { setLoading(false) }
@@ -258,6 +308,127 @@ export default function Dashboard() {
             </Card>
           </div>
 
+          {/* Charts Row 1: Monthly Trend + Orders Pie */}
+          {chartReady && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+              <Card className="shadow-md lg:col-span-2">
+                <CardHeader className="px-6 pt-5 pb-0 flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-blue-500" />
+                  <h3 className="font-extrabold text-slate-900 text-sm">الاتجاه المالي الشهري</h3>
+                </CardHeader>
+                <CardBody className="px-4 pb-4">
+                  <div style={{ width: '100%', height: 280, direction: 'ltr' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={stats.monthlyTrend} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="month" tick={{ fontSize: 11, fontFamily: 'Tajawal' }} />
+                        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
+                        <RechartsTooltip formatter={(value: any) => formatCurrency(Number(value) || 0)} contentStyle={{ fontFamily: 'Tajawal', direction: 'rtl', fontSize: 12 }} />
+                        <Legend wrapperStyle={{ fontFamily: 'Tajawal', fontSize: 11 }} />
+                        <Area type="monotone" dataKey="income" name="الإيرادات" stroke="#10b981" fill="#10b98120" strokeWidth={2.5} />
+                        <Area type="monotone" dataKey="expense" name="المصروفات" stroke="#ef4444" fill="#ef444420" strokeWidth={2.5} />
+                        <Area type="monotone" dataKey="profit" name="صافي الربح" stroke="#3b82f6" fill="#3b82f620" strokeWidth={2.5} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardBody>
+              </Card>
+
+              <Card className="shadow-md">
+                <CardHeader className="px-6 pt-5 pb-0 flex items-center gap-2">
+                  <Target className="h-5 w-5 text-indigo-500" />
+                  <h3 className="font-extrabold text-slate-900 text-sm">حالة الأوردرات</h3>
+                </CardHeader>
+                <CardBody className="px-4 pb-4">
+                  {stats.ordersPieData.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-[240px] text-slate-400">
+                      <Target className="h-12 w-12 mb-2 opacity-20" />
+                      <p className="text-sm font-semibold">لا توجد أوردرات</p>
+                    </div>
+                  ) : (
+                    <div style={{ width: '100%', height: 240, direction: 'ltr' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie data={stats.ordersPieData} cx="50%" cy="50%" outerRadius={80} innerRadius={35} paddingAngle={4} dataKey="value"
+                            label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                            {stats.ordersPieData.map((_, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip contentStyle={{ fontFamily: 'Tajawal', direction: 'rtl', fontSize: 12 }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
+            </div>
+          )}
+
+          {/* Charts Row 2: Employee Performance + Department Distribution */}
+          {chartReady && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+              <Card className="shadow-md lg:col-span-2">
+                <CardHeader className="px-6 pt-5 pb-0 flex items-center gap-2">
+                  <Users className="h-5 w-5 text-violet-500" />
+                  <h3 className="font-extrabold text-slate-900 text-sm">أداء الموظفين (أعلى 8)</h3>
+                </CardHeader>
+                <CardBody className="px-4 pb-4">
+                  {stats.empBarData.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-[240px] text-slate-400">
+                      <Users className="h-12 w-12 mb-2 opacity-20" />
+                      <p className="text-sm font-semibold">لا توجد بيانات</p>
+                    </div>
+                  ) : (
+                    <div style={{ width: '100%', height: 280, direction: 'ltr' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={stats.empBarData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <XAxis dataKey="name" tick={{ fontSize: 10, fontFamily: 'Tajawal' }} />
+                          <YAxis tick={{ fontSize: 10 }} />
+                          <RechartsTooltip contentStyle={{ fontFamily: 'Tajawal', direction: 'rtl', fontSize: 12 }} />
+                          <Legend wrapperStyle={{ fontFamily: 'Tajawal', fontSize: 11 }} />
+                          <Bar dataKey="calls" name="مكالمات" fill="#10b981" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="arrived" name="عملاء جاءوا" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="incentives" name="حوافز (ج.م.)" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
+
+              <Card className="shadow-md">
+                <CardHeader className="px-6 pt-5 pb-0 flex items-center gap-2">
+                  <PieChartIcon className="h-5 w-5 text-pink-500" />
+                  <h3 className="font-extrabold text-slate-900 text-sm">توزيع الموظفين</h3>
+                </CardHeader>
+                <CardBody className="px-4 pb-4">
+                  {stats.deptPieData.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-[240px] text-slate-400">
+                      <Users className="h-12 w-12 mb-2 opacity-20" />
+                      <p className="text-sm font-semibold">لا توجد بيانات</p>
+                    </div>
+                  ) : (
+                    <div style={{ width: '100%', height: 240, direction: 'ltr' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie data={stats.deptPieData} cx="50%" cy="50%" outerRadius={80} innerRadius={35} paddingAngle={4} dataKey="value"
+                            label={({ name, value }: any) => `${name} (${value})`}>
+                            {stats.deptPieData.map((_, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip contentStyle={{ fontFamily: 'Tajawal', direction: 'rtl', fontSize: 12 }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
+            </div>
+          )}
+
           {/* Financial Breakdown */}
           <Card className="mb-8 shadow-md">
             <CardHeader className="px-6 pt-5 pb-0 flex items-center justify-between">
@@ -297,7 +468,7 @@ export default function Dashboard() {
                 <div className="p-3 bg-orange-50 rounded-xl text-center border border-orange-100">
                   <TrendingDown className="h-5 w-5 text-orange-500 mx-auto mb-1" />
                   <p className="text-[10px] font-bold text-slate-500">مصروفات أخرى</p>
-                  <p className="text-lg font-extrabold text-orange-600">{formatCurrency(stats.totalExpenses - stats.totalPayroll - stats.purchasesTotal)}</p>
+                  <p className="text-lg font-extrabold text-orange-600">{formatCurrency(Math.max(0, stats.totalExpenses - stats.totalPayroll - stats.purchasesTotal))}</p>
                 </div>
               </div>
             </CardBody>
@@ -353,7 +524,7 @@ export default function Dashboard() {
               { label: 'المتابعات', value: stats.totalFollowUps, icon: PhoneForwarded, color: 'text-sky-500', bg: 'bg-sky-50' },
               { label: 'المبيعات', value: stats.totalSales, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-50' },
               { label: 'الخدمات', value: stats.totalServices, icon: Wrench, color: 'text-amber-500', bg: 'bg-amber-50' },
-              { label: 'الأجهزة', value: stats.totalDevices, icon: MonitorSmartphone, color: 'text-lime-500', bg: 'bg-lime-50' },
+              { label: 'الأجهزة', value: stats.totalDevices, icon: MonitorSmartphone, color: 'text-pink-500', bg: 'bg-pink-50' },
               { label: 'المخزون', value: stats.inventoryCount, icon: Package, color: 'text-emerald-500', bg: 'bg-emerald-50' },
             ].map((item, i) => (
               <Card key={i} className="shadow-sm hover:shadow-md transition-shadow">
@@ -368,11 +539,11 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* Employee Performance */}
+          {/* Employee Performance Table */}
           <Card className="mb-8 shadow-md">
             <CardHeader className="px-6 pt-5 pb-0 flex items-center gap-2">
               <Users className="h-5 w-5 text-violet-500" />
-              <h3 className="font-extrabold text-slate-900">أداء الموظفين</h3>
+              <h3 className="font-extrabold text-slate-900">تفاصيل أداء الموظفين</h3>
             </CardHeader>
             <CardBody className="px-6">
               {stats.employeePerformance.length === 0 ? (
@@ -380,7 +551,7 @@ export default function Dashboard() {
               ) : (
                 <div className="space-y-3">
                   {stats.employeePerformance.slice(0, 10).map((emp, i) => {
-                    const deptLabels: Record<string, string> = {
+                    const deptLabelsMap: Record<string, string> = {
                       call_center: 'كول سنتر', follow_up: 'متابعة', sales: 'مبيعات',
                       reception: 'استقبال', delivery: 'توصيل', maintenance: 'صيانة', hr: 'HR',
                     }
@@ -391,7 +562,7 @@ export default function Dashboard() {
                           <div className="flex items-center gap-2">
                             {i === 0 && <span className="text-lg">&#127942;</span>}
                             <span className="font-extrabold text-sm">{emp.name}</span>
-                            <Chip size="sm" variant="flat" color="default" className="font-semibold text-[9px]">{deptLabels[emp.department] || emp.department}</Chip>
+                            <Chip size="sm" variant="flat" color="default" className="font-semibold text-[9px]">{deptLabelsMap[emp.department] || emp.department}</Chip>
                           </div>
                           <Chip size="sm" variant="flat" color="success" className="font-bold">
                             حوافز: {formatCurrency(emp.incentives)}
@@ -408,24 +579,6 @@ export default function Dashboard() {
                   })}
                 </div>
               )}
-            </CardBody>
-          </Card>
-
-          {/* Department Distribution */}
-          <Card className="mb-8 shadow-md">
-            <CardHeader className="px-6 pt-5 pb-0 flex items-center gap-2">
-              <FileBarChart className="h-5 w-5 text-indigo-500" />
-              <h3 className="font-extrabold text-slate-900">توزيع الموظفين حسب الأقسام</h3>
-            </CardHeader>
-            <CardBody className="px-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-                {stats.departmentStats.map((dept, i) => (
-                  <div key={i} className="p-3 bg-slate-50 rounded-xl text-center border border-slate-100">
-                    <p className="text-[10px] font-bold text-slate-500">{dept.label}</p>
-                    <p className={`text-xl font-extrabold ${dept.color}`}>{dept.count}</p>
-                  </div>
-                ))}
-              </div>
             </CardBody>
           </Card>
 
