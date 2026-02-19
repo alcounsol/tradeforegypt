@@ -98,6 +98,74 @@ body {
   @apply border-indigo-500 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-200;
 }
 
+/* Unified Table Styles - Fix RTL alignment */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+  font-size: 0.875rem;
+}
+
+.data-table thead tr {
+  background: linear-gradient(to left, #f8fafc, #f1f5f9);
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.data-table thead th {
+  padding: 0.75rem;
+  font-weight: 800;
+  color: #475569;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.data-table thead th.col-center {
+  text-align: center;
+}
+
+.data-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.15s ease;
+}
+
+.data-table tbody tr:hover {
+  background-color: rgba(59, 130, 246, 0.04);
+}
+
+.data-table tbody td {
+  padding: 0.75rem;
+  text-align: right;
+}
+
+.data-table tbody td.col-center {
+  text-align: center;
+}
+
+.data-table tfoot tr {
+  border-top: 2px solid #e2e8f0;
+  background: linear-gradient(to left, #f0fdf4, #dcfce7);
+}
+
+.data-table tfoot td {
+  padding: 0.75rem;
+}
+
+/* Fix NextUI Table RTL alignment issues */
+[data-slot="base"] table {
+  direction: rtl;
+}
+
+[data-slot="base"] th,
+[data-slot="base"] td {
+  text-align: right !important;
+}
+
+[data-slot="base"] th[data-align="center"],
+[data-slot="base"] td[data-align="center"] {
+  text-align: center !important;
+}
+
 /* Action Buttons */
 .action-btn {
   @apply px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 border-2 cursor-pointer;

@@ -7,8 +7,9 @@ import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
 import FormInput, { FormSelect, FormTextarea } from '@/components/FormInput'
 import { ModalSubmitButton, ModalCancelButton, SearchInput } from '@/components/ActionButtons'
-import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Chip, Tooltip, Spinner } from '@nextui-org/react'
-import { Wrench, Edit, Trash2, Plus, X, FileText, CheckCircle } from 'lucide-react'
+import { Card, CardBody, Button, Tooltip, Spinner } from '@nextui-org/react'
+import { Wrench, Edit, Trash2, Plus, X, FileText, CheckCircle, Download } from 'lucide-react'
+import { exportToCSV, SECTIONS } from '@/lib/export'
 
 type PartEntry = { inventory_item_id: number; quantity: number; item_name?: string; unit_cost?: number }
 
@@ -44,7 +45,6 @@ export default function Services() {
     setInventoryItems(inv || [])
     setDeviceReceipts(dev || [])
     setCustomers(custs || [])
-    // Track which services already have invoices
     const invoiceMap: Record<number, boolean> = {}
     ;(existingInvoices || []).forEach((i: any) => { if (i.service_record_id) invoiceMap[i.service_record_id] = true })
     setInvoiceCreated(invoiceMap)
@@ -108,7 +108,6 @@ export default function Services() {
 
   async function handleSubmit() {
     let serviceId: number | null = null
-
     if (editItem) {
       await supabase.from('service_records').update(formData).eq('id', editItem.id)
       serviceId = editItem.id
@@ -116,8 +115,6 @@ export default function Services() {
       const { data } = await supabase.from('service_records').insert([formData]).select().single()
       serviceId = data?.id || null
     }
-
-    // Record as income in transactions (only for new records)
     if (serviceId && !editItem && formData.amount > 0) {
       await supabase.from('transactions').insert([{
         transaction_date: formData.service_date || new Date().toISOString().split('T')[0],
@@ -129,8 +126,6 @@ export default function Services() {
         reference_id: serviceId,
       }])
     }
-
-    // Add parts (deducts from inventory via trigger)
     if (serviceId && parts.length > 0) {
       const validParts = parts.filter(p => p.inventory_item_id > 0 && p.quantity > 0)
       if (validParts.length > 0) {
@@ -145,7 +140,6 @@ export default function Services() {
         )
       }
     }
-
     setIsOpen(false)
     fetchAll()
   }
@@ -157,9 +151,7 @@ export default function Services() {
     }
   }
 
-  // Create invoice automatically from service record
   async function createInvoiceFromService(service: ServiceRecord) {
-    // Find customer by phone or name
     let customerId: number | null = null
     if (service.customer_phone) {
       const cust = customers.find(c => c.phone === service.customer_phone)
@@ -169,9 +161,7 @@ export default function Services() {
       const cust = customers.find(c => c.name === service.customer_name)
       if (cust) customerId = cust.id
     }
-
     if (!customerId) {
-      // Create customer if not found
       const { data: newCust } = await supabase.from('customers').insert([{
         name: service.customer_name || 'عميل',
         phone: service.customer_phone || null,
@@ -181,83 +171,51 @@ export default function Services() {
       }]).select().single()
       customerId = newCust?.id || null
     }
-
     if (!customerId) { alert('خطأ في إنشاء/إيجاد العميل'); return }
-
-    // Get service parts for this service
     const { data: serviceParts } = await supabase.from('service_parts')
       .select('*, inventory_item:inventory_items(name)')
       .eq('service_record_id', service.id)
-
-    // Build invoice items
     const invoiceItems: any[] = []
-
-    // Main service item
     invoiceItems.push({
       description: `${service.service_type === 'INSPECTION' ? 'كشف' : 'صيانة'} - ${service.device_brand || ''} ${service.device_model || ''} ${service.device_type || ''}`.trim(),
-      item_type: 'service',
-      quantity: 1,
-      unit_price: service.amount,
-      total_price: service.amount,
+      item_type: 'service', quantity: 1, unit_price: service.amount, total_price: service.amount,
     })
-
-    // Parts items
     let partsTotal = 0
     if (serviceParts && serviceParts.length > 0) {
       serviceParts.forEach((p: any) => {
         const partName = p.inventory_item?.name || 'قطعة غيار'
         invoiceItems.push({
-          description: `قطعة غيار: ${partName}`,
-          item_type: 'part',
-          quantity: p.quantity,
-          unit_price: p.unit_cost || 0,
-          total_price: p.total_cost || 0,
+          description: `قطعة غيار: ${partName}`, item_type: 'part',
+          quantity: p.quantity, unit_price: p.unit_cost || 0, total_price: p.total_cost || 0,
           inventory_item_id: p.inventory_item_id,
         })
         partsTotal += (p.total_cost || 0)
       })
     }
-
     const subtotal = service.amount + partsTotal
     const totalAmount = subtotal
-
-    // Create invoice
     const { data: newInvoice } = await supabase.from('invoices').insert([{
-      customer_id: customerId,
-      invoice_type: 'service',
+      customer_id: customerId, invoice_type: 'service',
       invoice_date: service.service_date || new Date().toISOString().split('T')[0],
-      subtotal: subtotal,
-      discount: 0,
-      tax: 0,
-      total_amount: totalAmount,
-      paid_amount: 0,
-      status: 'unpaid',
-      payment_method: service.payment_method || 'CASH',
-      service_record_id: service.id,
+      subtotal, discount: 0, tax: 0, total_amount: totalAmount, paid_amount: 0, status: 'unpaid',
+      payment_method: service.payment_method || 'CASH', service_record_id: service.id,
       notes: `فاتورة تلقائية من خدمة ${service.service_type === 'INSPECTION' ? 'كشف' : 'صيانة'} - ${service.customer_name || ''}`,
     }]).select().single()
-
     if (newInvoice) {
-      // Insert invoice items
-      await supabase.from('invoice_items').insert(
-        invoiceItems.map(item => ({ ...item, invoice_id: newInvoice.id }))
-      )
-
-      // Record transaction
+      await supabase.from('invoice_items').insert(invoiceItems.map(item => ({ ...item, invoice_id: newInvoice.id })))
       await supabase.from('transactions').insert([{
         transaction_date: service.service_date || new Date().toISOString().split('T')[0],
-        type: 'income',
-        category: 'فاتورة صيانة',
-        amount: totalAmount,
+        type: 'income', category: 'فاتورة صيانة', amount: totalAmount,
         description: `فاتورة ${newInvoice.invoice_number || '#' + newInvoice.id} - ${service.customer_name || ''} - ${service.device_brand || ''} ${service.device_model || ''}`,
-        reference_type: 'invoice',
-        reference_id: newInvoice.id,
-        invoice_id: newInvoice.id,
+        reference_type: 'invoice', reference_id: newInvoice.id, invoice_id: newInvoice.id,
       }])
-
       alert(`تم إنشاء الفاتورة بنجاح!\nرقم الفاتورة: ${newInvoice.invoice_number || '#' + newInvoice.id}\nالمبلغ: ${totalAmount} ج.م.`)
       fetchAll()
     }
+  }
+
+  function handleExport() {
+    exportToCSV(filtered as any, SECTIONS.service_records.headers, 'services')
   }
 
   const totalRevenue = services.reduce((s, r) => s + r.amount, 0)
@@ -268,83 +226,100 @@ export default function Services() {
         <SearchInput value={search} onChange={setSearch} placeholder="بحث في الخدمات..." />
       </PageHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="shadow-sm"><CardBody className="p-4 text-center">
-          <p className="text-xs font-semibold text-slate-500">إجمالي الخدمات</p>
-          <p className="text-2xl font-extrabold text-amber-600">{services.length}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
+          <p className="text-[10px] font-bold text-slate-400 mb-0.5">إجمالي الخدمات</p>
+          <p className="text-xl font-black text-amber-600">{services.length}</p>
         </CardBody></Card>
-        <Card className="shadow-sm"><CardBody className="p-4 text-center">
-          <p className="text-xs font-semibold text-slate-500">إجمالي الإيرادات</p>
-          <p className="text-2xl font-extrabold text-green-600">{formatCurrency(totalRevenue)}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
+          <p className="text-[10px] font-bold text-slate-400 mb-0.5">إجمالي الإيرادات</p>
+          <p className="text-xl font-black text-green-600">{formatCurrency(totalRevenue)}</p>
         </CardBody></Card>
-        <Card className="shadow-sm"><CardBody className="p-4 text-center">
-          <p className="text-xs font-semibold text-slate-500">صيانة</p>
-          <p className="text-2xl font-extrabold text-blue-600">{services.filter(r => r.service_type === 'REPAIR').length}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
+          <p className="text-[10px] font-bold text-slate-400 mb-0.5">صيانة</p>
+          <p className="text-xl font-black text-blue-600">{services.filter(r => r.service_type === 'REPAIR').length}</p>
         </CardBody></Card>
-        <Card className="shadow-sm"><CardBody className="p-4 text-center">
-          <p className="text-xs font-semibold text-slate-500">فحص</p>
-          <p className="text-2xl font-extrabold text-purple-600">{services.filter(r => r.service_type === 'INSPECTION').length}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
+          <p className="text-[10px] font-bold text-slate-400 mb-0.5">فحص</p>
+          <p className="text-xl font-black text-purple-600">{services.filter(r => r.service_type === 'INSPECTION').length}</p>
         </CardBody></Card>
       </div>
 
-      <Card className="shadow-md">
-        <CardBody className="p-0">
-          {loading ? <div className="flex items-center justify-center h-48"><Spinner size="lg" /></div>
-          : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-              <Wrench className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد خدمات</p>
-            </div>
-          ) : (
-            <Table aria-label="جدول الخدمات" removeWrapper className="min-w-full">
-              <TableHeader>
-                <TableColumn className="text-right font-bold">العميل</TableColumn>
-                <TableColumn className="text-right font-bold">الجهاز</TableColumn>
-                <TableColumn className="text-right font-bold">النوع</TableColumn>
-                <TableColumn className="text-right font-bold">المبلغ</TableColumn>
-                <TableColumn className="text-right font-bold">الدفع</TableColumn>
-                <TableColumn className="text-right font-bold">التاريخ</TableColumn>
-                <TableColumn className="text-center font-bold">الإجراءات</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((s) => (
-                  <TableRow key={s.id} className="hover:bg-slate-50/50">
-                    <TableCell>
+      {loading ? (
+        <Card className="shadow-md border border-slate-100"><CardBody className="flex items-center justify-center h-48"><Spinner size="lg" /></CardBody></Card>
+      ) : filtered.length === 0 ? (
+        <Card className="shadow-md border border-slate-100"><CardBody className="flex flex-col items-center justify-center py-16 text-slate-400">
+          <Wrench className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد خدمات</p>
+        </CardBody></Card>
+      ) : (
+        <Card className="shadow-md border border-slate-100">
+          <div className="flex items-center justify-end px-4 pt-3 pb-1">
+            <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 transition-all">
+              <Download className="h-3.5 w-3.5" />تصدير CSV
+            </button>
+          </div>
+          <CardBody className="p-0 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gradient-to-l from-slate-50 to-slate-100 border-b-2 border-slate-200">
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">#</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">العميل</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">الجهاز</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">النوع</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">المبلغ</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">الدفع</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">التاريخ</th>
+                  <th className="text-center p-3 font-extrabold text-slate-600 text-xs">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((s, idx) => (
+                  <tr key={s.id} className="border-b border-slate-100 transition-all hover:bg-blue-50/30">
+                    <td className="p-3 text-xs font-bold text-slate-400">{idx + 1}</td>
+                    <td className="p-3">
                       <div>
-                        <p className="font-bold">{s.customer_name || '-'}</p>
+                        <p className="font-extrabold text-sm text-slate-800">{s.customer_name || '-'}</p>
                         {s.customer_phone && <p className="text-[10px] text-slate-400">{s.customer_phone}</p>}
                       </div>
-                    </TableCell>
-                    <TableCell className="text-sm">{s.device_brand ? `${s.device_brand} ${s.device_model || ''}` : '-'}</TableCell>
-                    <TableCell><Chip size="sm" variant="flat" color={s.service_type === 'INSPECTION' ? 'primary' : 'secondary'} className="font-semibold">{s.service_type === 'INSPECTION' ? 'كشف' : 'صيانة'}</Chip></TableCell>
-                    <TableCell className="font-extrabold text-amber-600">{formatCurrency(s.amount)}</TableCell>
-                    <TableCell><Chip size="sm" variant="flat" className="font-semibold">{s.payment_method === 'CASH' ? 'نقدي' : s.payment_method === 'CARD' ? 'بطاقة' : 'تحويل'}</Chip></TableCell>
-                    <TableCell className="text-sm text-slate-500">{s.service_date || '-'}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-center gap-1">
+                    </td>
+                    <td className="p-3 text-sm text-slate-600">{s.device_brand ? `${s.device_brand} ${s.device_model || ''}` : '-'}</td>
+                    <td className="p-3">
+                      <span className={`inline-flex px-2 py-0.5 rounded-md text-xs font-bold border ${s.service_type === 'INSPECTION' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-purple-50 text-purple-600 border-purple-100'}`}>
+                        {s.service_type === 'INSPECTION' ? 'كشف' : 'صيانة'}
+                      </span>
+                    </td>
+                    <td className="p-3 font-extrabold text-amber-600 text-sm">{formatCurrency(s.amount)}</td>
+                    <td className="p-3">
+                      <span className="inline-flex px-2 py-0.5 rounded-md bg-slate-50 text-slate-600 text-xs font-bold border border-slate-100">
+                        {s.payment_method === 'CASH' ? 'نقدي' : s.payment_method === 'CARD' ? 'بطاقة' : 'تحويل'}
+                      </span>
+                    </td>
+                    <td className="p-3 text-sm text-slate-500">{s.service_date || '-'}</td>
+                    <td className="p-3">
+                      <div className="flex items-center justify-center gap-0.5">
                         {invoiceCreated[s.id] ? (
-                          <Tooltip content="تم إنشاء الفاتورة">
-                            <Button isIconOnly size="sm" variant="flat" color="success" className="cursor-default">
-                              <CheckCircle className="h-4 w-4" />
-                            </Button>
-                          </Tooltip>
+                          <Tooltip content="تم إنشاء الفاتورة"><Button isIconOnly size="sm" variant="flat" color="success" className="cursor-default"><CheckCircle className="h-4 w-4" /></Button></Tooltip>
                         ) : (
-                          <Tooltip content="إنشاء فاتورة">
-                            <Button isIconOnly size="sm" variant="flat" color="warning" onPress={() => createInvoiceFromService(s)}>
-                              <FileText className="h-4 w-4" />
-                            </Button>
-                          </Tooltip>
+                          <Tooltip content="إنشاء فاتورة"><Button isIconOnly size="sm" variant="flat" color="warning" onPress={() => createInvoiceFromService(s)}><FileText className="h-4 w-4" /></Button></Tooltip>
                         )}
                         <Tooltip content="تعديل"><Button isIconOnly size="sm" variant="light" color="primary" onPress={() => openEdit(s)}><Edit className="h-4 w-4" /></Button></Tooltip>
                         <Tooltip content="حذف" color="danger"><Button isIconOnly size="sm" variant="light" color="danger" onPress={() => handleDelete(s.id)}><Trash2 className="h-4 w-4" /></Button></Tooltip>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardBody>
-      </Card>
+              </tbody>
+              <tfoot>
+                <tr className="bg-gradient-to-l from-amber-50 to-amber-100 border-t-2 border-amber-200">
+                  <td colSpan={4} className="p-3 text-sm font-extrabold text-amber-800">الإجمالي ({filtered.length} خدمة)</td>
+                  <td className="p-3 text-sm font-black text-amber-800">{formatCurrency(filtered.reduce((s, r) => s + r.amount, 0))}</td>
+                  <td colSpan={3} className="p-3"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </CardBody>
+        </Card>
+      )}
 
       <CustomModal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editItem ? 'تعديل خدمة' : 'إضافة خدمة جديدة'} footer={
         <>
@@ -365,7 +340,6 @@ export default function Services() {
               ]} />
             </div>
           )}
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormSelect label="نوع الخدمة" value={formData.service_type} onChange={(v) => setFormData({...formData, service_type: v as 'INSPECTION' | 'REPAIR'})} options={[{ value: 'INSPECTION', label: 'كشف' }, { value: 'REPAIR', label: 'صيانة' }]} />
             <FormSelect label="طريقة الدفع" value={formData.payment_method} onChange={(v) => setFormData({...formData, payment_method: v})} options={[{ value: 'CASH', label: 'نقدي' }, { value: 'CARD', label: 'بطاقة' }, { value: 'TRANSFER', label: 'تحويل' }]} />
@@ -384,8 +358,6 @@ export default function Services() {
             <FormInput label="التاريخ" type="date" value={formData.service_date} onChange={(v) => setFormData({...formData, service_date: v})} />
           </div>
           <FormTextarea label="ملاحظات" value={formData.notes} onChange={(v) => setFormData({...formData, notes: v})} />
-
-          {/* Parts from inventory */}
           <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-bold text-emerald-700">قطع الغيار من المخزون (يتم خصمها تلقائياً)</p>

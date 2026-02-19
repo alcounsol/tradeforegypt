@@ -7,8 +7,9 @@ import PageHeader from '@/components/PageHeader'
 import CustomModal from '@/components/CustomModal'
 import FormInput, { FormSelect, FormTextarea } from '@/components/FormInput'
 import { ModalSubmitButton, ModalCancelButton, SearchInput } from '@/components/ActionButtons'
-import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Chip, Tooltip, Spinner } from '@nextui-org/react'
-import { ShoppingCart, Edit, Trash2, Plus, Package } from 'lucide-react'
+import { Card, CardBody, Button, Tooltip, Spinner } from '@nextui-org/react'
+import { ShoppingCart, Edit, Trash2, Plus, Package, Download } from 'lucide-react'
+import { exportToCSV, SECTIONS } from '@/lib/export'
 
 export default function Purchases() {
   const [purchases, setPurchases] = useState<Purchase[]>([])
@@ -59,34 +60,24 @@ export default function Purchases() {
     const data: any = {
       supplier_id: formData.supplier_id ? parseInt(formData.supplier_id) : null,
       item_id: formData.item_id ? parseInt(formData.item_id) : null,
-      quantity: formData.quantity,
-      unit_cost: formData.unit_cost,
+      quantity: formData.quantity, unit_cost: formData.unit_cost,
       total_cost: formData.quantity * formData.unit_cost,
       purchase_date: formData.purchase_date,
-      invoice_number: formData.invoice_number || null,
-      notes: formData.notes || null,
+      invoice_number: formData.invoice_number || null, notes: formData.notes || null,
     }
-
     if (!data.item_id) { alert('يرجى اختيار الصنف'); return }
-
     if (editItem) {
       await supabase.from('purchases').update(data).eq('id', editItem.id)
     } else {
-      // Insert purchase - trigger will auto-add to inventory
       const { data: newPurchase } = await supabase.from('purchases').insert([data]).select().single()
-      // Record as expense in transactions
       if (newPurchase) {
         const itemName = items.find(i => i.id === data.item_id)?.name || ''
         const supplierName = suppliers.find(s => s.id === data.supplier_id)?.name || ''
         await supabase.from('transactions').insert([{
           transaction_date: data.purchase_date || new Date().toISOString().split('T')[0],
-          type: 'expense',
-          category: 'مشتريات',
-          amount: data.total_cost,
+          type: 'expense', category: 'مشتريات', amount: data.total_cost,
           description: `شراء ${data.quantity} ${itemName} من ${supplierName}`,
-          reference_type: 'purchase',
-          reference_id: newPurchase.id,
-          purchase_id: newPurchase.id,
+          reference_type: 'purchase', reference_id: newPurchase.id, purchase_id: newPurchase.id,
         }])
       }
     }
@@ -94,9 +85,7 @@ export default function Purchases() {
   }
 
   async function handleNewItem() {
-    const { data } = await supabase.from('inventory_items').insert([{
-      ...newItemForm, current_stock: 0,
-    }]).select().single()
+    const { data } = await supabase.from('inventory_items').insert([{ ...newItemForm, current_stock: 0 }]).select().single()
     if (data) {
       setFormData({ ...formData, item_id: String(data.id) })
       setIsNewItemOpen(false)
@@ -110,6 +99,10 @@ export default function Purchases() {
     }
   }
 
+  function handleExport() {
+    exportToCSV(purchases as any, SECTIONS.purchases.headers, 'purchases')
+  }
+
   const totalPurchases = purchases.reduce((s, p: any) => s + (p.total_cost || 0), 0)
 
   return (
@@ -118,68 +111,85 @@ export default function Purchases() {
         <SearchInput value={search} onChange={setSearch} placeholder="بحث..." />
       </PageHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className="shadow-sm"><CardBody className="p-4 text-center">
-          <p className="text-xs font-semibold text-slate-500">إجمالي المشتريات</p>
-          <p className="text-2xl font-extrabold text-cyan-600">{purchases.length}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
+          <p className="text-[10px] font-bold text-slate-400 mb-0.5">إجمالي المشتريات</p>
+          <p className="text-xl font-black text-cyan-600">{purchases.length}</p>
         </CardBody></Card>
-        <Card className="shadow-sm"><CardBody className="p-4 text-center">
-          <p className="text-xs font-semibold text-slate-500">إجمالي التكلفة</p>
-          <p className="text-2xl font-extrabold text-blue-600">{formatCurrency(totalPurchases)}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
+          <p className="text-[10px] font-bold text-slate-400 mb-0.5">إجمالي التكلفة</p>
+          <p className="text-xl font-black text-blue-600">{formatCurrency(totalPurchases)}</p>
         </CardBody></Card>
-        <Card className="shadow-sm"><CardBody className="p-4 text-center">
-          <p className="text-xs font-semibold text-slate-500">عدد الموردين</p>
-          <p className="text-2xl font-extrabold text-purple-600">{suppliers.length}</p>
+        <Card className="shadow-sm border border-slate-100"><CardBody className="p-3 text-center">
+          <p className="text-[10px] font-bold text-slate-400 mb-0.5">عدد الموردين</p>
+          <p className="text-xl font-black text-purple-600">{suppliers.length}</p>
         </CardBody></Card>
       </div>
 
-      <Card className="shadow-md">
-        <CardBody className="p-0">
-          {loading ? <div className="flex items-center justify-center h-48"><Spinner size="lg" /></div>
-          : purchases.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-              <ShoppingCart className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد مشتريات</p>
-            </div>
-          ) : (
-            <Table aria-label="جدول المشتريات" removeWrapper className="min-w-full">
-              <TableHeader>
-                <TableColumn className="text-right font-bold">المورد</TableColumn>
-                <TableColumn className="text-right font-bold">الصنف</TableColumn>
-                <TableColumn className="text-right font-bold">الكمية</TableColumn>
-                <TableColumn className="text-right font-bold">سعر الوحدة</TableColumn>
-                <TableColumn className="text-right font-bold">الإجمالي</TableColumn>
-                <TableColumn className="text-right font-bold">الفاتورة</TableColumn>
-                <TableColumn className="text-right font-bold">التاريخ</TableColumn>
-                <TableColumn className="text-center font-bold">الإجراءات</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {purchases.map((p: any) => (
-                  <TableRow key={p.id} className="hover:bg-slate-50/50">
-                    <TableCell className="font-bold">{p.suppliers?.name || '-'}</TableCell>
-                    <TableCell>
+      {loading ? (
+        <Card className="shadow-md border border-slate-100"><CardBody className="flex items-center justify-center h-48"><Spinner size="lg" /></CardBody></Card>
+      ) : purchases.length === 0 ? (
+        <Card className="shadow-md border border-slate-100"><CardBody className="flex flex-col items-center justify-center py-16 text-slate-400">
+          <ShoppingCart className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد مشتريات</p>
+        </CardBody></Card>
+      ) : (
+        <Card className="shadow-md border border-slate-100">
+          <div className="flex items-center justify-end px-4 pt-3 pb-1">
+            <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 transition-all">
+              <Download className="h-3.5 w-3.5" />تصدير CSV
+            </button>
+          </div>
+          <CardBody className="p-0 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gradient-to-l from-slate-50 to-slate-100 border-b-2 border-slate-200">
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">#</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">المورد</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">الصنف</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">الكمية</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">سعر الوحدة</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">الإجمالي</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">الفاتورة</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">التاريخ</th>
+                  <th className="text-center p-3 font-extrabold text-slate-600 text-xs">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody>
+                {purchases.map((p: any, idx) => (
+                  <tr key={p.id} className="border-b border-slate-100 transition-all hover:bg-blue-50/30">
+                    <td className="p-3 text-xs font-bold text-slate-400">{idx + 1}</td>
+                    <td className="p-3 font-extrabold text-sm text-slate-800">{p.suppliers?.name || '-'}</td>
+                    <td className="p-3">
                       <div>
-                        <p className="font-semibold">{p.inventory_items?.name || '-'}</p>
+                        <p className="font-bold text-sm text-slate-700">{p.inventory_items?.name || '-'}</p>
                         <p className="text-[10px] text-slate-400">المخزون: {p.inventory_items?.current_stock || 0}</p>
                       </div>
-                    </TableCell>
-                    <TableCell className="font-semibold">{p.quantity}</TableCell>
-                    <TableCell className="text-sm">{formatCurrency(p.unit_cost || 0)}</TableCell>
-                    <TableCell className="font-extrabold text-cyan-600">{formatCurrency(p.total_cost || 0)}</TableCell>
-                    <TableCell className="text-sm text-slate-500">{p.invoice_number || '-'}</TableCell>
-                    <TableCell className="text-sm text-slate-500">{p.purchase_date ? formatDate(p.purchase_date) : '-'}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-center gap-1">
+                    </td>
+                    <td className="p-3 font-bold text-sm">{p.quantity}</td>
+                    <td className="p-3 text-sm text-slate-600">{formatCurrency(p.unit_cost || 0)}</td>
+                    <td className="p-3 font-extrabold text-cyan-600 text-sm">{formatCurrency(p.total_cost || 0)}</td>
+                    <td className="p-3 text-sm text-slate-500">{p.invoice_number || '-'}</td>
+                    <td className="p-3 text-sm text-slate-500">{p.purchase_date ? formatDate(p.purchase_date) : '-'}</td>
+                    <td className="p-3">
+                      <div className="flex items-center justify-center gap-0.5">
                         <Tooltip content="تعديل"><Button isIconOnly size="sm" variant="light" color="primary" onPress={() => openEdit(p)}><Edit className="h-4 w-4" /></Button></Tooltip>
                         <Tooltip content="حذف" color="danger"><Button isIconOnly size="sm" variant="light" color="danger" onPress={() => handleDelete(p.id)}><Trash2 className="h-4 w-4" /></Button></Tooltip>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardBody>
-      </Card>
+              </tbody>
+              <tfoot>
+                <tr className="bg-gradient-to-l from-cyan-50 to-cyan-100 border-t-2 border-cyan-200">
+                  <td colSpan={5} className="p-3 text-sm font-extrabold text-cyan-800">الإجمالي ({purchases.length} عملية شراء)</td>
+                  <td className="p-3 text-sm font-black text-cyan-800">{formatCurrency(totalPurchases)}</td>
+                  <td colSpan={3} className="p-3"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </CardBody>
+        </Card>
+      )}
 
       <CustomModal isOpen={isOpen} onClose={onClose} title={editItem ? 'تعديل عملية شراء' : 'إضافة عملية شراء جديدة'} footer={
         <>
@@ -221,7 +231,6 @@ export default function Purchases() {
         </div>
       </CustomModal>
 
-      {/* New Item Modal */}
       <CustomModal isOpen={isNewItemOpen} onClose={() => setIsNewItemOpen(false)} title="إضافة صنف جديد للمخزون" footer={
         <>
           <ModalCancelButton label="إلغاء" onClick={() => setIsNewItemOpen(false)} />

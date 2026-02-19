@@ -5,8 +5,9 @@ import { supabase, Transaction } from '@/lib/supabase'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 import { SearchInput } from '@/components/ActionButtons'
-import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Chip, Spinner } from '@nextui-org/react'
-import { Calculator, TrendingUp, TrendingDown, DollarSign, ArrowUpCircle, ArrowDownCircle, BarChart3, PieChart as PieChartIcon } from 'lucide-react'
+import { Card, CardBody, Spinner } from '@nextui-org/react'
+import { exportToCSV } from '@/lib/export'
+import { Calculator, TrendingUp, TrendingDown, DollarSign, ArrowUpCircle, ArrowDownCircle, BarChart3, PieChart as PieChartIcon, Download } from 'lucide-react'
 import dynamic from 'next/dynamic'
 
 // Dynamic import for Recharts (client-side only)
@@ -336,43 +337,61 @@ export default function AccountsPage() {
       </div>
 
       {/* Transactions Table */}
-      <Card className="shadow-md">
-        <CardBody className="p-0">
-          {loading ? <div className="flex items-center justify-center h-48"><Spinner size="lg" /></div>
-          : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-              <Calculator className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد حركات مالية</p>
-            </div>
-          ) : (
-            <Table aria-label="جدول الحركات المالية" removeWrapper className="min-w-full">
-              <TableHeader>
-                <TableColumn className="text-right font-bold">التاريخ</TableColumn>
-                <TableColumn className="text-right font-bold">النوع</TableColumn>
-                <TableColumn className="text-right font-bold">الفئة</TableColumn>
-                <TableColumn className="text-right font-bold">الوصف</TableColumn>
-                <TableColumn className="text-right font-bold">المبلغ</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {filtered.map(t => (
-                  <TableRow key={t.id} className="hover:bg-slate-50/50">
-                    <TableCell className="text-sm text-slate-500">{t.transaction_date}</TableCell>
-                    <TableCell>
-                      <Chip size="sm" variant="flat" color={t.type === 'income' ? 'success' : 'danger'} className="font-semibold">
+      {loading ? (
+        <Card className="shadow-md border border-slate-100"><CardBody className="flex items-center justify-center h-48"><Spinner size="lg" /></CardBody></Card>
+      ) : filtered.length === 0 ? (
+        <Card className="shadow-md border border-slate-100"><CardBody className="flex flex-col items-center justify-center py-16 text-slate-400">
+          <Calculator className="h-16 w-16 mb-4 opacity-20" /><p className="font-bold text-lg">لا توجد حركات مالية</p>
+        </CardBody></Card>
+      ) : (
+        <Card className="shadow-md border border-slate-100">
+          <div className="flex items-center justify-end px-4 pt-3 pb-1">
+            <button onClick={() => exportToCSV(filtered as any, [{key:'transaction_date',label:'التاريخ'},{key:'type',label:'النوع'},{key:'category',label:'الفئة'},{key:'description',label:'الوصف'},{key:'amount',label:'المبلغ'}], 'transactions')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 transition-all">
+              <Download className="h-3.5 w-3.5" />تصدير CSV
+            </button>
+          </div>
+          <CardBody className="p-0 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gradient-to-l from-slate-50 to-slate-100 border-b-2 border-slate-200">
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">#</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">التاريخ</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">النوع</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">الفئة</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">الوصف</th>
+                  <th className="text-right p-3 font-extrabold text-slate-600 text-xs">المبلغ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((t, idx) => (
+                  <tr key={t.id} className="border-b border-slate-100 transition-all hover:bg-blue-50/30">
+                    <td className="p-3 text-xs font-bold text-slate-400">{idx + 1}</td>
+                    <td className="p-3 text-sm text-slate-500">{t.transaction_date}</td>
+                    <td className="p-3">
+                      <span className={`inline-flex px-2 py-0.5 rounded-md text-xs font-bold border ${t.type === 'income' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
                         {t.type === 'income' ? 'إيراد' : 'مصروف'}
-                      </Chip>
-                    </TableCell>
-                    <TableCell><Chip size="sm" variant="flat" color="secondary" className="font-semibold">{t.category}</Chip></TableCell>
-                    <TableCell className="text-sm max-w-[300px] truncate">{t.description || '-'}</TableCell>
-                    <TableCell className={`font-extrabold ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <span className="inline-flex px-2 py-0.5 rounded-md bg-purple-50 text-purple-600 text-xs font-bold border border-purple-100">{t.category}</span>
+                    </td>
+                    <td className="p-3 text-sm max-w-[300px] truncate text-slate-600">{t.description || '-'}</td>
+                    <td className={`p-3 font-extrabold text-sm ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                       {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardBody>
-      </Card>
+              </tbody>
+              <tfoot>
+                <tr className="bg-gradient-to-l from-emerald-50 to-emerald-100 border-t-2 border-emerald-200">
+                  <td colSpan={5} className="p-3 text-sm font-extrabold text-emerald-800">الإجمالي ({filtered.length} حركة)</td>
+                  <td className="p-3 text-sm font-black text-emerald-800">{formatCurrency(netProfit)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </CardBody>
+        </Card>
+      )}
     </div>
   )
 }
